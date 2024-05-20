@@ -1,4 +1,5 @@
 package com.example.tobiya_books;
+
 import android.os.Bundle;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -11,9 +12,13 @@ import java.util.List;
 
 public class HomeFragment extends Fragment implements BooksAdapter.OnBookClickListener {
 
-    private RecyclerView recyclerView;
+    private RecyclerView recyclerViewNewArrivals;
+    private RecyclerView recyclerViewBestSellers;
+    private RecyclerView recyclerViewFreeBooks;
     private BooksAdapter adapter;
-    private List<Book> bookList;
+    private List<Book> newArrivalsList;
+    private List<Book> bestSellersList;
+    private List<Book> freeBooksList;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -21,37 +26,41 @@ public class HomeFragment extends Fragment implements BooksAdapter.OnBookClickLi
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_home, container, false);
 
-        // Initialize RecyclerView
-        recyclerView = view.findViewById(R.id.recycler_view);
-        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        // Initialize RecyclerViews
+        recyclerViewNewArrivals = view.findViewById(R.id.recycler_view_new_arrivals);
+        recyclerViewBestSellers = view.findViewById(R.id.recycler_view_best_sellers);
+        recyclerViewFreeBooks = view.findViewById(R.id.recycler_view_free_books);
 
-        // Initialize book list
-        bookList = new ArrayList<>();
-        bookList.add(new Book("Yoratorad", "Yismake worku", "Description 1", "2022", "yoratorad"));
-        bookList.add(new Book("lelasew", "Author 1", "Description 1", "2022", "lelasew"));
-        bookList.add(new Book("yehabeshajebdu", "adolph", "Description 1", "2022", "yehabeshajebdu"));
-        bookList.add(new Book("fikireskemekabir", "Author 1", "Description 1", "2022", "fikireskemekabir"));
-        bookList.add(new Book("alemawek", "Author 1", "Description 1", "2022", "alemawek"));
-        bookList.add(new Book("alemenor", "Author 1", "Description 1", "2022", "alemenor"));
-        bookList.add(new Book("Title 1", "Author 1", "Description 1", "2022", "yoratorad"));
-        bookList.add(new Book("Yoratorad", "Yismake worku", "Description 1", "2022", "yoratorad"));
-        bookList.add(new Book("lelasew", "Author 1", "Description 1", "2022", "lelasew"));
-        bookList.add(new Book("yehabeshajebdu", "adolph", "Description 1", "2022", "yehabeshajebdu"));
-        bookList.add(new Book("fikireskemekabir", "Author 1", "Description 1", "2022", "fikireskemekabir"));
-        bookList.add(new Book("alemawek", "Daniel Wondimagegn", "Description 1", "2022", "alemawek"));
-        bookList.add(new Book("alemenor", "Daniel Wondimagegn", "Description 1", "2022", "alemenor"));
-        bookList.add(new Book("yoratorad", "Yismake", "Description 1", "2022", "yoratorad"));
+        // Initialize book lists
+        newArrivalsList = new ArrayList<>();
+        bestSellersList = new ArrayList<>();
+        freeBooksList = new ArrayList<>();
+
+        // Sample data for demonstration
+// Sample data for demonstration
+        newArrivalsList.add(new Book("Yoratorad", "Yismake Worku", "Description 1", "2022", "yoratorad"));
+        newArrivalsList.add(new Book("Lelasew", "Author 1", "Description 1", "2022", "lelasew"));
+        newArrivalsList.add(new Book("Yehabeshajebdu", "Adolph", "Description 1", "2022", "yehabeshajebdu"));
+        newArrivalsList.add(new Book("Fikireskemekabir", "Author 1", "Description 1", "2022", "fikireskemekabir"));
+        newArrivalsList.add(new Book("Alemawek", "Author 1", "Description 1", "2022", "alemawek"));
+        newArrivalsList.add(new Book("Alemenor", "Author 1", "Description 1", "2022", "alemenor"));
+// Repeat the same data for Best Sellers and Free Books sections
+        bestSellersList.addAll(newArrivalsList);
+        freeBooksList.addAll(newArrivalsList);
 
 
-
-
-        // Add more books as needed
-
-        // Set up adapter
-        adapter = new BooksAdapter(getContext(), bookList, this);
-        recyclerView.setAdapter(adapter);
+        // Set up adapters and layout managers for each RecyclerView
+        setupRecyclerView(recyclerViewNewArrivals, newArrivalsList);
+        setupRecyclerView(recyclerViewBestSellers, bestSellersList);
+        setupRecyclerView(recyclerViewFreeBooks, freeBooksList);
 
         return view;
+    }
+
+    private void setupRecyclerView(RecyclerView recyclerView, List<Book> bookList) {
+        recyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
+        adapter = new BooksAdapter(getContext(), bookList, this);
+        recyclerView.setAdapter(adapter);
     }
 
     @Override
