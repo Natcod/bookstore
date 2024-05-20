@@ -22,10 +22,13 @@
         <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:id="@+id/fragment_container"/>
+            android:id="@+id/fragment_container"
+            android:background="@color/lavender"
+            android:paddingTop="45dp"/>
         <androidx.coordinatorlayout.widget.CoordinatorLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent"
+            >
 
             <com.google.android.material.bottomappbar.BottomAppBar
                 android:id="@+id/bottomAppBar"
@@ -56,6 +59,7 @@
                 app:layout_anchor="@id/bottomAppBar"
                 app:maxImageSize="40dp"
                 android:tint="@color/black"/>
+
         </androidx.coordinatorlayout.widget.CoordinatorLayout>
     </RelativeLayout>
     <com.google.android.material.navigation.NavigationView
