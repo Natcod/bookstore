@@ -37,22 +37,17 @@ public class HomeFragment extends Fragment implements BooksAdapter.OnBookClickLi
         freeBooksList = new ArrayList<>();
 
         // Sample data for demonstration
-// Sample data for demonstration
-        newArrivalsList.add(new Book("Yoratorad", "Yismake Worku", "Description 1", "2022", "yoratorad"));
-        newArrivalsList.add(new Book("Lelasew", "Author 1", "Description 1", "2022", "lelasew"));
-        newArrivalsList.add(new Book("Yehabeshajebdu", "Adolph", "Description 1", "2022", "yehabeshajebdu"));
-        newArrivalsList.add(new Book("Fikireskemekabir", "Author 1", "Description 1", "2022", "fikireskemekabir"));
-        newArrivalsList.add(new Book("Alemawek", "Author 1", "Description 1", "2022", "alemawek"));
-        newArrivalsList.add(new Book("Alemenor", "Author 1", "Description 1", "2022", "alemenor"));
-// Repeat the same data for Best Sellers and Free Books sections
-        bestSellersList.addAll(newArrivalsList);
-        freeBooksList.addAll(newArrivalsList);
-
+        newArrivalsList.add(new Book("Yoratorad", "Yismake Worku", "Description 1", "2022", "yoratorad", "Amharic", "300", "paid"));
+        newArrivalsList.add(new Book("Lelasew", "Author 1", "Description 1", "2022", "lelasew", "Amharic", "200", "paid"));
+        newArrivalsList.add(new Book("Yehabeshajebdu", "Adolph", "Description 1", "2022", "yehabeshajebdu", "Amharic", "250", "free"));
+        newArrivalsList.add(new Book("Fikireskemekabir", "Author 1", "Description 1", "2022", "fikireskemekabir", "Amharic", "400", "paid"));
+        newArrivalsList.add(new Book("Alemawek", "Author 1", "Description 1", "2022", "alemawek", "Amharic", "300", "free"));
+        newArrivalsList.add(new Book("Alemenor", "Author 1", "Description 1", "2022", "alemenor", "Amharic", "600", "paid"));
 
         // Set up adapters and layout managers for each RecyclerView
         setupRecyclerView(recyclerViewNewArrivals, newArrivalsList);
-        setupRecyclerView(recyclerViewBestSellers, bestSellersList);
-        setupRecyclerView(recyclerViewFreeBooks, freeBooksList);
+        setupRecyclerView(recyclerViewBestSellers, newArrivalsList);
+        setupRecyclerView(recyclerViewFreeBooks, newArrivalsList);
 
         return view;
     }
@@ -62,6 +57,7 @@ public class HomeFragment extends Fragment implements BooksAdapter.OnBookClickLi
         adapter = new BooksAdapter(getContext(), bookList, this);
         recyclerView.setAdapter(adapter);
     }
+
 
     @Override
     public void onBookClick(Book book) {
@@ -73,12 +69,19 @@ public class HomeFragment extends Fragment implements BooksAdapter.OnBookClickLi
         bundle.putString("publicationDate", book.getPublicationDate());
         bundle.putString("coverImageUrl", book.getCoverImageName());
 
+        // Pass additional book details
+        bundle.putString("language", book.getLanguage());
+        bundle.putString("price", book.getPrice());
+        bundle.putString("accessType", book.getAccessType());
+
         BookDetailFragment bookDetailFragment = new BookDetailFragment();
         bookDetailFragment.setArguments(bundle);
 
+        // Use fragment transaction to replace current fragment with BookDetailFragment
         getActivity().getSupportFragmentManager().beginTransaction()
                 .replace(R.id.fragment_container, bookDetailFragment)
                 .addToBackStack(null)
                 .commit();
     }
 }
+

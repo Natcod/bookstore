@@ -66,7 +66,7 @@ public class BooksAdapter extends RecyclerView.Adapter<BooksAdapter.BookViewHold
             if (imageResId != null) {
                 coverImageView.setImageResource(imageResId);
             } else {
-                coverImageView.setImageResource(R.drawable.yehabeshajebdu); // Set a default image if not found
+                coverImageView.setImageResource(R.drawable.yoratorad); // Set a default image if not found
             }
 
             itemView.setOnClickListener(new View.OnClickListener() {
