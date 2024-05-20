@@ -59,7 +59,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 int itemId = item.getItemId();
                 if (itemId == R.id.home) {
-                    openFragment(new Home());
+                    openFragment(new HomeFragment());
                     return true;
                 }else if (itemId == R.id.store) {
                     openFragment(new Store());
@@ -76,7 +76,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         });
 
         fragmentManager = getSupportFragmentManager();
-        openFragment(new Home());
+        openFragment(new HomeFragment());
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
