@@ -146,4 +146,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         transaction.replace(R.id.fragment_container, fragment);
         transaction.commit();
     }
+    public void displayStoreFragment() {
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        FragmentTransaction transaction = fragmentManager.beginTransaction();
+        Store storeFragment = new Store();
+        transaction.replace(R.id.fragment_container, storeFragment, "STORE_TAG");
+        transaction.addToBackStack(null);
+        transaction.commit();
+    }
+
 }

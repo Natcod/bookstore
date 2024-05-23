@@ -88,4 +88,3 @@ public class BookDetailFragment extends Fragment {
         return view;
     }
 }
-
