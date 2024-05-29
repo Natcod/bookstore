@@ -8,6 +8,8 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
+
 import com.squareup.picasso.Picasso; // or use Glide
 
 public class BookDetailFragment extends Fragment {
@@ -18,6 +20,11 @@ public class BookDetailFragment extends Fragment {
     private TextView descriptionTextView;
     private TextView publicationDateTextView;
     private Button buyNowButton;
+    private TextView languageTextView;
+    private TextView priceTextView;
+    private TextView accessTypeTextView;
+    private  Button backButton;
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -31,7 +38,11 @@ public class BookDetailFragment extends Fragment {
         authorTextView = view.findViewById(R.id.detail_author);
         descriptionTextView = view.findViewById(R.id.detail_description);
         publicationDateTextView = view.findViewById(R.id.detail_publication_date);
+        languageTextView = view.findViewById(R.id.detail_language);
+        priceTextView = view.findViewById(R.id.detail_price);
+        accessTypeTextView = view.findViewById(R.id.detail_access_type);
         buyNowButton = view.findViewById(R.id.button_buy_now);
+        backButton = view.findViewById(R.id.button_back);
 
         // Get data from arguments
         Bundle bundle = getArguments();
@@ -41,19 +52,35 @@ public class BookDetailFragment extends Fragment {
             String description = bundle.getString("description");
             String publicationDate = bundle.getString("publicationDate");
             String coverImageUrl = bundle.getString("coverImageUrl");
+            String language = bundle.getString("language");
+            String price = bundle.getString("price");
+            String accessType = bundle.getString("accessType");
 
             // Set data to views
-            titleTextView.setText(title);
-            authorTextView.setText(author);
-            descriptionTextView.setText(description);
-            publicationDateTextView.setText(publicationDate);
-            Picasso.get().load(coverImageUrl).into(coverImageView);
+            titleTextView.setText("Title : " + title);
+            authorTextView.setText("Author : " + author);
+            descriptionTextView.setText("Description : " + description);
+            publicationDateTextView.setText("Publication Date : " + publicationDate);
+            languageTextView.setText("Language : " + language);
+            priceTextView.setText("Price : " + price);
+            accessTypeTextView.setText("Access Type: " + accessType);
+            int resourceId = getResources().getIdentifier(coverImageUrl, "drawable", getContext().getPackageName());
+            coverImageView.setImageResource(resourceId);
 
             // Set button click listener
             buyNowButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    // Handle "Buy Now" button click
+                    Toast.makeText(getContext(), "Buy Now clicked!", Toast.LENGTH_SHORT).show();
+                }
+            });
+
+            // Set back button click listener
+            backButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    // Navigate back to HomeFragment
+                    getActivity().getSupportFragmentManager().popBackStack();
                 }
             });
         }
@@ -61,4 +88,3 @@ public class BookDetailFragment extends Fragment {
         return view;
     }
 }
-

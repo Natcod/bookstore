@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -12,8 +11,8 @@
         <ImageView
             android:id="@+id/detail_cover_image"
             android:layout_width="match_parent"
-            android:layout_height="200dp"
-            android:scaleType="centerCrop"
+            android:layout_height="400dp"
+            android:scaleType="fitCenter"
             android:src="@drawable/yoratorad" /> <!-- Placeholder image resource -->
 
         <TextView
@@ -29,7 +28,29 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textSize="20sp"
+            android:textColor="@color/white"
             android:text="Author" />
+
+        <TextView
+            android:id="@+id/detail_language"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="18sp"
+            android:text="Language" />
+
+        <TextView
+            android:id="@+id/detail_price"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="18sp"
+            android:text="Price" />
+
+        <TextView
+            android:id="@+id/detail_access_type"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="18sp"
+            android:text="Access Type" />
 
         <TextView
             android:id="@+id/detail_description"
@@ -45,13 +66,30 @@
             android:textSize="18sp"
             android:text="Publication Date" />
 
-        <Button
-            android:id="@+id/button_buy_now"
+        <!-- Layout for buttons -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Buy Now"
-            android:layout_marginTop="16dp" />
+            android:orientation="horizontal"
+            android:layout_marginTop="16dp">
 
+            <Button
+                android:id="@+id/button_buy_now"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="Buy Now"
+                android:layout_weight="1"/>
+
+
+        </LinearLayout>
+
+        <!-- Back button -->
+        <Button
+            android:id="@+id/button_back"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Back"
+            android:layout_marginTop="16dp" />
     </LinearLayout>
 
 </ScrollView>

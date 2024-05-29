@@ -1,63 +1,78 @@
 package com.example.tobiya_books;
 
 import android.os.Bundle;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 
-import androidx.fragment.app.Fragment;
+import java.util.ArrayList;
+import java.util.List;
 
-/**
- * A simple {@link Fragment} subclass.
- * Use the {@link Store#newInstance} factory method to
- * create an instance of this fragment.
- */
 public class Store extends Fragment {
 
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
-
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
-
-    public Store() {
-        // Required empty public constructor
-    }
-
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment Store.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static Store newInstance(String param1, String param2) {
-        Store fragment = new Store();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
-    }
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-        }
-    }
+    private RecyclerView recyclerViewBag;
+    private BooksAdapter adapter;
+    private List<Book> allBooks;
+    private List<Book> currentBooks;
+    private Button buttonAll;
+    private Button buttonFree;
+    private Button buttonPaid;
+    private Button buttonSubscription;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_store, container, false);
+        View view = inflater.inflate(R.layout.fragment_store, container, false);
+
+        recyclerViewBag = view.findViewById(R.id.recycler_view_bag);
+        recyclerViewBag.setLayoutManager(new GridLayoutManager(getContext(), 3));
+
+        buttonAll = view.findViewById(R.id.button_all);
+        buttonFree = view.findViewById(R.id.button_free);
+        buttonPaid = view.findViewById(R.id.button_paid);
+        buttonSubscription = view.findViewById(R.id.button_subscription);
+
+        allBooks = getSampleBooks();
+        currentBooks = new ArrayList<>(allBooks);
+        adapter = new BooksAdapter(getContext(), currentBooks, null);
+        recyclerViewBag.setAdapter(adapter);
+
+        buttonAll.setOnClickListener(v -> filterBooks("All"));
+        buttonFree.setOnClickListener(v -> filterBooks("free"));
+        buttonPaid.setOnClickListener(v -> filterBooks("paid"));
+        buttonSubscription.setOnClickListener(v -> filterBooks("subscribed"));
+
+        return view;
+    }
+
+    private void filterBooks(String accessType) {
+        currentBooks.clear();
+        if ("All".equals(accessType)) {
+            currentBooks.addAll(allBooks);
+        } else {
+            for (Book book : allBooks) {
+                if (accessType.equalsIgnoreCase(book.getAccessType())) {
+                    currentBooks.add(book);
+                }
+            }
+        }
+        adapter.notifyDataSetChanged();
+    }
+
+    private List<Book> getSampleBooks() {
+        List<Book> books = new ArrayList<>();
+        books.add(new Book("Yoratorad", "Yismake Worku", "Description 1", "2022", "yoratorad", "Amharic", "300", "paid"));
+        books.add(new Book("Lelasew", "Author 1", "Description 1", "2022", "lelasew", "Amharic", "200", "paid"));
+        books.add(new Book("Yehabeshajebdu", "Adolph", "Description 1", "2022", "yehabeshajebdu", "Amharic", "250", "subscribed"));
+        books.add(new Book("Fikireskemekabir", "Author 1", "Description 1", "2022", "fikireskemekabir", "Amharic", "400", "paid"));
+        books.add(new Book("Alemawek", "Author 1", "Description 1", "2022", "alemawek", "Amharic", "300", "free"));
+        books.add(new Book("Alemenor", "Author 1", "Description 1", "2022", "alemenor", "Amharic", "600", "paid"));
+        return books;
     }
 }
