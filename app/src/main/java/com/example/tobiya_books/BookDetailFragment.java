@@ -10,6 +10,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
 import com.squareup.picasso.Picasso; // or use Glide
 
 public class BookDetailFragment extends Fragment {
@@ -64,8 +65,11 @@ public class BookDetailFragment extends Fragment {
             languageTextView.setText("Language : " + language);
             priceTextView.setText("Price : " + price);
             accessTypeTextView.setText("Access Type: " + accessType);
-            int resourceId = getResources().getIdentifier(coverImageUrl, "drawable", getContext().getPackageName());
-            coverImageView.setImageResource(resourceId);
+
+            Glide.with(requireContext())
+                    .load(coverImageUrl)
+                    .into(coverImageView);
+
 
             // Set button click listener
             buyNowButton.setOnClickListener(new View.OnClickListener() {

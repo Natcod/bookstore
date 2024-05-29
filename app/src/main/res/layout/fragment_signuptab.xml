@@ -17,7 +17,6 @@
             android:layout_marginTop="20dp"
             android:padding="20dp">
 
-               />
             <EditText
                 android:layout_width="300dp"
                 android:layout_height="50dp"
@@ -68,6 +67,32 @@
                 android:drawablePadding="8dp"
                 android:background="@drawable/edittext_bkg"/>
 
+            <!-- New EditText fields for first and last name -->
+            <EditText
+                android:layout_width="300dp"
+                android:layout_height="50dp"
+                android:layout_gravity="center"
+                android:id="@+id/signup_firstname"
+                android:layout_marginTop="20dp"
+                android:textColorHint="@color/black"
+                android:padding="8dp"
+                android:hint="First Name"
+                android:drawableLeft="@drawable/baseline_person_24"
+                android:drawablePadding="4dp"
+                android:background="@drawable/edittext_bkg"/>
+            <EditText
+                android:layout_width="300dp"
+                android:layout_height="50dp"
+                android:layout_gravity="center"
+                android:id="@+id/signup_lastname"
+                android:layout_marginTop="20dp"
+                android:textColorHint="@color/black"
+                android:padding="8dp"
+                android:hint="Last Name"
+                android:drawableLeft="@drawable/baseline_person_24"
+                android:drawablePadding="4dp"
+                android:background="@drawable/edittext_bkg"/>
+
             <Button
                 android:id="@+id/signup_button"
                 android:layout_width="290dp"
@@ -80,5 +105,4 @@
                 app:cornerRadius="30dp" />
         </LinearLayout>
     </LinearLayout>
-
 </LinearLayout>

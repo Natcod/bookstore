@@ -38,7 +38,7 @@ public class Store extends Fragment {
         buttonPaid = view.findViewById(R.id.button_paid);
         buttonSubscription = view.findViewById(R.id.button_subscription);
 
-        allBooks = getSampleBooks();
+
         currentBooks = new ArrayList<>(allBooks);
         adapter = new BooksAdapter(getContext(), currentBooks, null);
         recyclerViewBag.setAdapter(adapter);
@@ -65,14 +65,5 @@ public class Store extends Fragment {
         adapter.notifyDataSetChanged();
     }
 
-    private List<Book> getSampleBooks() {
-        List<Book> books = new ArrayList<>();
-        books.add(new Book("Yoratorad", "Yismake Worku", "Description 1", "2022", "yoratorad", "Amharic", "300", "paid"));
-        books.add(new Book("Lelasew", "Author 1", "Description 1", "2022", "lelasew", "Amharic", "200", "paid"));
-        books.add(new Book("Yehabeshajebdu", "Adolph", "Description 1", "2022", "yehabeshajebdu", "Amharic", "250", "subscribed"));
-        books.add(new Book("Fikireskemekabir", "Author 1", "Description 1", "2022", "fikireskemekabir", "Amharic", "400", "paid"));
-        books.add(new Book("Alemawek", "Author 1", "Description 1", "2022", "alemawek", "Amharic", "300", "free"));
-        books.add(new Book("Alemenor", "Author 1", "Description 1", "2022", "alemenor", "Amharic", "600", "paid"));
-        return books;
-    }
+
 }

@@ -57,12 +57,12 @@ public class BookListFragment extends Fragment {
     private List<Book> getBooksByAccessType() {
         List<Book> allBooks = new ArrayList<>();
         // Add your sample data here
-        allBooks.add(new Book("Yoratorad", "Yismake Worku", "Description 1", "2022", "yoratorad", "Amharic", "300", "paid"));
-        allBooks.add(new Book("Lelasew", "Author 1", "Description 1", "2022", "lelasew", "Amharic", "200", "paid"));
-        allBooks.add(new Book("Yehabeshajebdu", "Adolph", "Description 1", "2022", "yehabeshajebdu", "Amharic", "250", "Subscribed"));
-        allBooks.add(new Book("Fikireskemekabir", "Author 1", "Description 1", "2022", "fikireskemekabir", "Amharic", "400", "paid"));
-        allBooks.add(new Book("Alemawek", "Author 1", "Description 1", "2022", "alemawek", "Amharic", "300", "free"));
-        allBooks.add(new Book("Alemenor", "Author 1", "Description 1", "2022", "alemenor", "Amharic", "600", "paid"));
+//        allBooks.add(new Book("Yoratorad", "Yismake Worku", "Description 1", "2022", "yoratorad", "Amharic", 300, "paid",12345678,223));
+//        allBooks.add(new Book("Lelasew", "Author 1", "Description 1", "2022", "lelasew", "Amharic", 200, "paid",12345678,223));
+//        allBooks.add(new Book("Yehabeshajebdu", "Adolph", "Description 1", "2022", "yehabeshajebdu", "Amharic", 250, "Subscribed",12345678,223));
+//        allBooks.add(new Book("Fikireskemekabir", "Author 1", "Description 1", "2022", "fikireskemekabir", "Amharic", 400, "paid",12345678,223));
+//        allBooks.add(new Book("Alemawek", "Author 1", "Description 1", "2022", "alemawek", "Amharic", 300, "free",12345678,223));
+//        allBooks.add(new Book("Alemenor", "Author 1", "Description 1", "2022", "alemenor", "Amharic", 600, "paid",12345678,223));
 
         if ("All".equals(accessType)) {
             return allBooks;

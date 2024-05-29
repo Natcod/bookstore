@@ -10,21 +10,23 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
+
 import java.util.List;
-import java.util.Map;
 
 public class BooksAdapter extends RecyclerView.Adapter<BooksAdapter.BookViewHolder> {
 
     private List<Book> books;
     private LayoutInflater inflater;
     private OnBookClickListener listener;
-    private static Map<String, Integer> imageMap;
+    private Context context; // Context is needed for Glide
 
     public BooksAdapter(Context context, List<Book> books, OnBookClickListener listener) {
         this.inflater = LayoutInflater.from(context);
         this.books = books;
         this.listener = listener;
-        imageMap = DrawableUtils.getDrawableMap(context);
+        this.context = context; // Initialize context
     }
 
     @NonNull
@@ -37,7 +39,7 @@ public class BooksAdapter extends RecyclerView.Adapter<BooksAdapter.BookViewHold
     @Override
     public void onBindViewHolder(@NonNull BookViewHolder holder, int position) {
         Book book = books.get(position);
-        holder.bind(book, listener);
+        holder.bind(context, book, listener);
     }
 
     @Override
@@ -57,24 +59,17 @@ public class BooksAdapter extends RecyclerView.Adapter<BooksAdapter.BookViewHold
             coverImageView = itemView.findViewById(R.id.imageview_cover);
         }
 
-        public void bind(final Book book, final OnBookClickListener listener) {
+        public void bind(Context context, final Book book, final OnBookClickListener listener) {
             titleTextView.setText(book.getTitle());
             authorTextView.setText(book.getAuthor());
 
-            // Load cover image from drawable folder using the map
-            Integer imageResId = imageMap.get(book.getCoverImageName());
-            if (imageResId != null) {
-                coverImageView.setImageResource(imageResId);
-            } else {
-                coverImageView.setImageResource(R.drawable.yoratorad); // Set a default image if not found
-            }
+            // Use Glide to load the cover image from a URL
+            Glide.with(context)
+                    .load(book.getCoverImage())
+                    .apply(new RequestOptions().placeholder(R.drawable.yoratorad).error(R.drawable.yehabeshajebdu))
+                    .into(coverImageView);
 
-            itemView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    listener.onBookClick(book);
-                }
-            });
+            itemView.setOnClickListener(v -> listener.onBookClick(book));
         }
     }
 
