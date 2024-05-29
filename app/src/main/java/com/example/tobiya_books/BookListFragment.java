@@ -1,12 +1,20 @@
 package com.example.tobiya_books;
 
 import android.os.Bundle;
+import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,41 +47,61 @@ public class BookListFragment extends Fragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_book_list, container, false);
         recyclerView = view.findViewById(R.id.recycler_view_books);
-        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        recyclerView.setLayoutManager(new GridLayoutManager(getContext(), 3));
 
-        // Sample data for demonstration
-        books = getBooksByAccessType();
-
+        books = new ArrayList<>();
         adapter = new BooksAdapter(getContext(), books, null);
         recyclerView.setAdapter(adapter);
+
+        fetchBooks();
 
         return view;
     }
 
-    private List<Book> getBooksByAccessType() {
-        List<Book> allBooks = new ArrayList<>();
-        // Add your sample data here
-//        allBooks.add(new Book("Yoratorad", "Yismake Worku", "Description 1", "2022", "yoratorad", "Amharic", 300, "paid",12345678,223));
-//        allBooks.add(new Book("Lelasew", "Author 1", "Description 1", "2022", "lelasew", "Amharic", 200, "paid",12345678,223));
-//        allBooks.add(new Book("Yehabeshajebdu", "Adolph", "Description 1", "2022", "yehabeshajebdu", "Amharic", 250, "Subscribed",12345678,223));
-//        allBooks.add(new Book("Fikireskemekabir", "Author 1", "Description 1", "2022", "fikireskemekabir", "Amharic", 400, "paid",12345678,223));
-//        allBooks.add(new Book("Alemawek", "Author 1", "Description 1", "2022", "alemawek", "Amharic", 300, "free",12345678,223));
-//        allBooks.add(new Book("Alemenor", "Author 1", "Description 1", "2022", "alemenor", "Amharic", 600, "paid",12345678,223));
+    private void fetchBooks() {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        Query collectionRef = db.collection("Ebook");
 
+        // Check if accessType is "All"
         if ("All".equals(accessType)) {
-            return allBooks;
+            collectionRef.get().addOnCompleteListener(task -> {
+                if (task.isSuccessful() && task.getResult() != null) {
+                    books.clear();
+                    for (QueryDocumentSnapshot document : task.getResult()) {
+                        Book book = document.toObject(Book.class);
+                        books.add(book);
+                        Log.d("BookListFragment", "Book fetched: " + book.getTitle());
+                    }
+                    adapter.notifyDataSetChanged();
+                    Log.d("BookListFragment", "Books list updated, size: " + books.size());
+                } else {
+                    Log.e("BookListFragment", "Error loading books: ", task.getException());
+                }
+            });
+        } else {
+            // Fetch books based on access type
+            collectionRef.whereEqualTo("accessType", accessType)
+                    .get()
+                    .addOnCompleteListener(task -> {
+                        if (task.isSuccessful() && task.getResult() != null) {
+                            books.clear();
+                            for (QueryDocumentSnapshot document : task.getResult()) {
+                                Book book = document.toObject(Book.class);
+                                books.add(book);
+                                Log.d("BookListFragment", "Book fetched: " + book.getTitle());
+                            }
+                            adapter.notifyDataSetChanged();
+                            Log.d("BookListFragment", "Books list updated, size: " + books.size());
+                        } else {
+                            Log.e("BookListFragment", "Error loading books: ", task.getException());
+                        }
+                    });
         }
-
-        List<Book> filteredBooks = new ArrayList<>();
-        for (Book book : allBooks) {
-            if (accessType.equals(book.getAccessType())) {
-                filteredBooks.add(book);
-            }
-        }
-        return filteredBooks;
     }
+
+
 }
