@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1020858474315",
+    "project_id": "tobiya-books",
+    "storage_bucket": "tobiya-books.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1020858474315:android:74b4c862b46df4e5fc92ce",
+        "android_client_info": {
+          "package_name": "com.example.tobiya_books"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB-1Y37TCTUS_K8NV5DWO5gk-SNhS3KWIc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
