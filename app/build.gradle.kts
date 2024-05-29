@@ -53,24 +53,15 @@ dependencies {
     annotationProcessor ("androidx.room:room-compiler:2.6.1")
     implementation ("androidx.room:room-ktx:2.6.1")
 
-
-
-
-
-
-
     // Import the BoM for the Firebase platform
-    implementation(platform("com.google.firebase:firebase-bom:33.0.0"))
-
+     implementation(platform("com.google.firebase:firebase-bom:33.0.0"))
 
     // Declare the dependency for the Cloud Firestore library
 
     implementation("com.google.firebase:firebase-firestore")
-
     implementation("com.google.firebase:firebase-analytics:22.0.0")
     implementation("com.google.firebase:firebase-database:21.0.0")
     implementation ("com.google.firebase:firebase-firestore:24.5.0")
     implementation ("com.google.firebase:firebase-auth:21.0.1")
-
-
+    
 }
