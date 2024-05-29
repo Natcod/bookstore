@@ -63,5 +63,5 @@ dependencies {
     implementation("com.google.firebase:firebase-database:21.0.0")
     implementation ("com.google.firebase:firebase-firestore:24.5.0")
     implementation ("com.google.firebase:firebase-auth:21.0.1")
-    
+
 }
