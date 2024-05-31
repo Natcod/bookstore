@@ -51,6 +51,7 @@ public class MessagesFragment extends Fragment {
         return fragment;
     }
 
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_messages, container, false);
@@ -70,15 +71,18 @@ public class MessagesFragment extends Fragment {
 
         inputMessage = view.findViewById(R.id.input_message);
         sendButton = view.findViewById(R.id.send_button);
+        sendButton.setOnClickListener(v -> sendMessage());
+
+        Button joinButton = view.findViewById(R.id.join_button);
+        joinButton.setOnClickListener(v -> joinGroup());
 
         db = FirebaseFirestore.getInstance();
-
-        sendButton.setOnClickListener(v -> sendMessage());
 
         fetchMessages();
 
         return view;
     }
+
 
     private void fetchMessages() {
         db.collection("Message")
@@ -101,6 +105,25 @@ public class MessagesFragment extends Fragment {
                     }
                 });
     }
+    private void joinGroup() {
+        DocumentReference groupRef = db.collection("BookClub").document(groupId);
+        DocumentReference readerRef = db.collection("Reader").document(userId);
+
+        Map<String, Object> memberData = new HashMap<>();
+        memberData.put("bookClub", groupRef);
+        memberData.put("joinDate", com.google.firebase.Timestamp.now());
+        memberData.put("reader", readerRef);
+
+        db.collection("BookClubMember").add(memberData)
+                .addOnSuccessListener(documentReference -> {
+                    Toast.makeText(getContext(), "Joined group successfully", Toast.LENGTH_SHORT).show();
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(getContext(), "Error joining group: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    Log.e(TAG, "Error joining group", e);
+                });
+    }
+
 
     private void sendMessage() {
         String messageText = inputMessage.getText().toString().trim();

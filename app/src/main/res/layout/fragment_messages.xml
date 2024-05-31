@@ -6,13 +6,26 @@
     android:orientation="vertical"
     android:padding="16dp">
 
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingBottom="8dp">
+
+        <Button
+            android:id="@+id/join_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:text="Join" />
+    </RelativeLayout>
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler_view_messages"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:paddingBottom="8dp"
         android:clipToPadding="false"
+        android:paddingBottom="8dp"
         android:scrollbars="vertical" />
 
     <LinearLayout
@@ -26,16 +39,16 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:layout_marginBottom="55dp"
+            android:background="@color/white"
             android:hint="Write a message"
-            android:padding="8dp"
-            android:background="@color/white"/>
+            android:padding="8dp" />
 
         <Button
             android:id="@+id/send_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Send"
             android:background="@color/lavender"
-            android:textColor="@android:color/white"/>
+            android:text="Send"
+            android:textColor="@android:color/white" />
     </LinearLayout>
 </LinearLayout>
