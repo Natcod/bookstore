@@ -2,6 +2,7 @@ package com.example.tobiya_books;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,8 +13,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
@@ -23,11 +23,12 @@ import java.util.List;
 
 public class JoinedFragment extends Fragment implements GroupAdapter.OnGroupClickListener {
 
+    private static final String TAG = "JoinedFragment";
+
     private RecyclerView recyclerView;
     private GroupAdapter groupAdapter;
     private List<Group> groupList = new ArrayList<>();
     private FirebaseFirestore db;
-    private FirebaseAuth mAuth;
 
     public JoinedFragment() {
         // Required empty public constructor
@@ -43,7 +44,6 @@ public class JoinedFragment extends Fragment implements GroupAdapter.OnGroupClic
         recyclerView.setAdapter(groupAdapter);
 
         db = FirebaseFirestore.getInstance();
-        mAuth = FirebaseAuth.getInstance();
 
         fetchJoinedGroups();
 
@@ -51,27 +51,50 @@ public class JoinedFragment extends Fragment implements GroupAdapter.OnGroupClic
     }
 
     private void fetchJoinedGroups() {
-        FirebaseUser currentUser = mAuth.getCurrentUser();
-        if (currentUser != null) {
-            String userId = currentUser.getUid();
-            db.collection("BookClub")
-                    .whereArrayContains("members", userId)
+        // Retrieve user ID from shared preferences
+        Context context = getActivity();
+        if (context != null) {
+            String userId = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE).getString("UserID", "defaultUserId");
+            Log.d(TAG, "Fetching joined groups for user ID: " + userId);
+            db.collection("BookClubMember")
+                    .whereEqualTo("reader", db.collection("Reader").document(userId))
                     .get()
                     .addOnCompleteListener(task -> {
                         if (task.isSuccessful()) {
                             groupList.clear();
                             QuerySnapshot querySnapshot = task.getResult();
                             if (querySnapshot != null) {
+                                Log.d(TAG, "Query snapshot size: " + querySnapshot.size());
                                 for (QueryDocumentSnapshot document : querySnapshot) {
-                                    Group group = document.toObject(Group.class);
-                                    groupList.add(group);
+                                    DocumentReference bookClubRef = document.getDocumentReference("bookClub");
+                                    if (bookClubRef != null) {
+                                        Log.d(TAG, "Fetching book club document: " + bookClubRef.getId());
+                                        bookClubRef.get().addOnSuccessListener(bookClubDoc -> {
+                                            if (bookClubDoc.exists()) {
+                                                Group group = bookClubDoc.toObject(Group.class);
+                                                group.setId(bookClubDoc.getId());
+                                                groupList.add(group);
+                                                Log.d(TAG, "Group added: " + group.getName());
+                                                groupAdapter.notifyDataSetChanged();
+                                            } else {
+                                                Log.d(TAG, "Book club document does not exist");
+                                            }
+                                        }).addOnFailureListener(e -> {
+                                            Log.e(TAG, "Error fetching book club: ", e);
+                                            Toast.makeText(getContext(), "Error fetching book club: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                        });
+                                    }
                                 }
-                                groupAdapter.notifyDataSetChanged();
+                            } else {
+                                Log.d(TAG, "Query snapshot is null");
                             }
                         } else {
+                            Log.e(TAG, "Error getting joined groups: ", task.getException());
                             Toast.makeText(getContext(), "Error getting joined groups: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
                         }
                     });
+        } else {
+            Log.d(TAG, "Context is null");
         }
     }
 
@@ -101,13 +124,12 @@ public class JoinedFragment extends Fragment implements GroupAdapter.OnGroupClic
         openMessagesFragment(groupId, userId);
     }
 
-
-
     private void openMessagesFragment(String groupId, String userId) {
-        MessagesFragment messagesFragment = MessagesFragment.newInstance(groupId, userId);
+        MessagesFragment messagesFragment = MessagesFragment.newInstance(groupId, userId, false); // Pass false for opened from JoinedFragment
         getParentFragmentManager().beginTransaction()
                 .replace(R.id.fragment_container, messagesFragment)
                 .addToBackStack(null)
                 .commit();
     }
+
 }

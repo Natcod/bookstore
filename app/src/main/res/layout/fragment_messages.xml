@@ -15,8 +15,9 @@
             android:id="@+id/join_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentRight="true"
-            android:text="Join" />
+            android:text="Join"
+            android:visibility="visible" />
+
     </RelativeLayout>
 
     <androidx.recyclerview.widget.RecyclerView
@@ -41,7 +42,8 @@
             android:layout_marginBottom="55dp"
             android:background="@color/white"
             android:hint="Write a message"
-            android:padding="8dp" />
+            android:padding="8dp"
+            android:visibility="visible" />
 
         <Button
             android:id="@+id/send_button"
@@ -49,6 +51,9 @@
             android:layout_height="wrap_content"
             android:background="@color/lavender"
             android:text="Send"
-            android:textColor="@android:color/white" />
+            android:textColor="@android:color/white"
+            android:visibility="visible" />
+
+
     </LinearLayout>
 </LinearLayout>

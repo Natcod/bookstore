@@ -2,36 +2,6 @@ package com.example.tobiya_books;
 
 import android.app.AlertDialog;
 import android.content.Context;
-import android.os.Bundle;
-import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.EditText;
-import android.widget.Toast;
-import com.google.firebase.Timestamp;
-
-import androidx.annotation.NonNull;
-import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
-import com.google.android.material.button.MaterialButton;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.google.firebase.firestore.QuerySnapshot;
-
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
@@ -41,21 +11,20 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.button.MaterialButton;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-
+import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class AllGroupsFragment extends Fragment implements GroupAdapter.OnGroupClickListener {
 
@@ -128,8 +97,6 @@ public class AllGroupsFragment extends Fragment implements GroupAdapter.OnGroupC
                 });
     }
 
-
-
     private void showCreateGroupDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
         builder.setTitle("Create New Group");
@@ -187,7 +154,6 @@ public class AllGroupsFragment extends Fragment implements GroupAdapter.OnGroupC
                 });
     }
 
-
     private String getCurrentUserId() {
         // Retrieve current user ID from SharedPreferences
         SharedPreferences sharedPreferences = getContext().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
@@ -204,7 +170,7 @@ public class AllGroupsFragment extends Fragment implements GroupAdapter.OnGroupC
     }
 
     private void openMessagesFragment(String groupId, String userId) {
-        MessagesFragment messagesFragment = MessagesFragment.newInstance(groupId, userId);
+        MessagesFragment messagesFragment = MessagesFragment.newInstance(groupId, userId, true); // Pass true for opened from AllGroupsFragment
         getParentFragmentManager().beginTransaction()
                 .replace(R.id.fragment_container, messagesFragment)
                 .addToBackStack(null)
