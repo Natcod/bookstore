@@ -17,10 +17,11 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,6 +38,7 @@ public class MessagesFragment extends Fragment {
     private Button sendButton;
     private Button joinButton;
     private boolean openedFromAllGroups = false;
+    private boolean isMember = false; // Variable to store membership status
 
     private static final String TAG = "MessagesFragment";
 
@@ -75,12 +77,12 @@ public class MessagesFragment extends Fragment {
         }
 
         // Initialize RecyclerView and adapter
-        messageAdapter = new MessageAdapter(messageList, userId); // Pass userId to the adapter
+        messageAdapter = new MessageAdapter(messageList, userId);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setAdapter(messageAdapter);
 
-        // Fetch messages from Firebase Firestore
-        fetchMessages();
+        // Check membership status
+        checkMembershipStatus();
 
         // Set click listener for send button
         sendButton.setOnClickListener(v -> sendMessage());
@@ -88,22 +90,12 @@ public class MessagesFragment extends Fragment {
         // Set click listener for join button
         joinButton.setOnClickListener(v -> joinGroup());
 
-        // If opened from AllGroupsFragment, disable message input and send button
-        if (openedFromAllGroups) {
-            inputMessage.setVisibility(View.GONE);
-            sendButton.setVisibility(View.GONE);
-            joinButton.setVisibility(View.VISIBLE); // Show the join button
-        } else {
-            joinButton.setVisibility(View.GONE); // Hide the join button
-        }
-
         return view;
     }
 
     private void fetchMessages() {
         db.collection("Message")
                 .whereEqualTo("bookClub", db.collection("BookClub").document(groupId))
-                .orderBy("sentDateTime", Query.Direction.DESCENDING) // Order by sentDateTime in descending order
                 .addSnapshotListener((value, error) -> {
                     if (error != null) {
                         Log.e(TAG, "Error getting messages", error);
@@ -118,6 +110,8 @@ public class MessagesFragment extends Fragment {
                             messageList.add(message);
                             Log.d(TAG, "Message fetched: " + message.getMessage());
                         }
+                        // Sort messages in chronological order
+                        Collections.sort(messageList, (m1, m2) -> m2.getSentDateTime().compareTo(m1.getSentDateTime()));
                         messageAdapter.notifyDataSetChanged();
                     }
                 });
@@ -141,13 +135,14 @@ public class MessagesFragment extends Fragment {
 
         db.collection("Message").add(messageData)
                 .addOnSuccessListener(documentReference -> {
-                    inputMessage.setText(""); // Clear the input field after message is sent
+                    inputMessage.getText().clear(); // Clear the input field
                     Toast.makeText(getContext(), "Message sent", Toast.LENGTH_SHORT).show();
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(getContext(), "Error sending message: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
     }
+
 
     private void joinGroup() {
         DocumentReference groupRef = db.collection("BookClub").document(groupId);
@@ -161,10 +156,50 @@ public class MessagesFragment extends Fragment {
         db.collection("BookClubMember").add(memberData)
                 .addOnSuccessListener(documentReference -> {
                     Toast.makeText(getContext(), "Joined group successfully", Toast.LENGTH_SHORT).show();
+                    isMember = true; // Update membership status
+                    updateUI(); // Update UI after joining the group
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(getContext(), "Error joining group: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                     Log.e(TAG, "Error joining group", e);
                 });
+    }
+
+    private void checkMembershipStatus() {
+        db.collection("BookClubMember")
+                .whereEqualTo("bookClub", db.collection("BookClub").document(groupId))
+                .whereEqualTo("reader", db.collection("Reader").document(userId))
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    if (!queryDocumentSnapshots.isEmpty()) {
+                        isMember = true;
+                    } else {
+                        isMember = false;
+                    }
+                    updateUI();
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error checking membership status", e);
+                    Toast.makeText(getContext(), "Error checking membership status: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+    }
+
+    private void updateUI() {
+        if (isMember) {
+            joinButton.setVisibility(View.GONE);
+            inputMessage.setVisibility(View.VISIBLE);
+            sendButton.setVisibility(View.VISIBLE);
+        } else {
+            if (openedFromAllGroups) {
+                joinButton.setVisibility(View.VISIBLE);
+                inputMessage.setVisibility(View.GONE);
+                sendButton.setVisibility(View.GONE);
+            } else {
+                joinButton.setVisibility(View.GONE);
+                inputMessage.setVisibility(View.VISIBLE);
+                sendButton.setVisibility(View.VISIBLE);
+            }
+        }
+        fetchMessages(); // Fetch messages after updating UI
     }
 }

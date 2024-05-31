@@ -133,7 +133,7 @@ public class AllGroupsFragment extends Fragment implements GroupAdapter.OnGroupC
         Map<String, Object> groupData = new HashMap<>();
         groupData.put("bookClubName", groupName);
         groupData.put("creationDate", timestamp);
-        groupData.put("creator", db.document("/Reader/" + currentUserId)); // Assuming currentUserId is the ID of the user document
+        groupData.put("creator", db.collection("Reader").document(currentUserId)); // Use currentUserId directly as the creator
 
         // Add the group data to the "BookClub" collection
         db.collection("BookClub")
@@ -153,6 +153,7 @@ public class AllGroupsFragment extends Fragment implements GroupAdapter.OnGroupC
                     Toast.makeText(getContext(), "Error creating group: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
     }
+
 
     private String getCurrentUserId() {
         // Retrieve current user ID from SharedPreferences

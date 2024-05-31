@@ -81,7 +81,7 @@ public class CreateGroupFragment extends Fragment {
 
 
         // Add the new group to Firestore
-        db.collection("BookClubs")
+        db.collection("BookClub")
                 .add(groupData)
                 .addOnSuccessListener(documentReference -> {
                     Toast.makeText(getContext(), "Group created successfully!", Toast.LENGTH_SHORT).show();
