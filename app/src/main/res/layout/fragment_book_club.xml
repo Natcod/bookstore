@@ -49,16 +49,6 @@
         app:layout_constraintEnd_toEndOf="parent"/>
 
     <!-- FloatingActionButton for creating a new group -->
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fab_create_group"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="66dp"
-        android:layout_marginRight="16dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:src="@drawable/plus"
-        app:backgroundTint="@color/white"
-        app:fabSize="normal"/>
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

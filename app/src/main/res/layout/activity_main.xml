@@ -25,10 +25,10 @@
             android:id="@+id/fragment_container"
             android:background="@color/lavender"
             android:paddingTop="45dp"/>
+
         <androidx.coordinatorlayout.widget.CoordinatorLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            >
+            android:layout_height="match_parent">
 
             <com.google.android.material.bottomappbar.BottomAppBar
                 android:id="@+id/bottomAppBar"
@@ -38,7 +38,6 @@
                 android:backgroundTint="@color/purple"
                 app:fabCradleMargin="10dp"
                 app:fabCradleRoundedCornerRadius="50dp">
-
 
                 <com.google.android.material.bottomnavigation.BottomNavigationView
                     android:id="@+id/bottom_navigation"

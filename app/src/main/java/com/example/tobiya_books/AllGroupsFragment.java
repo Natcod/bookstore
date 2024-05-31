@@ -9,13 +9,45 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.Toast;
+import com.google.firebase.Timestamp;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.button.MaterialButton;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
+
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.EditText;
+import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
@@ -30,6 +62,7 @@ public class AllGroupsFragment extends Fragment implements GroupAdapter.OnGroupC
     private GroupAdapter groupAdapter;
     private List<Group> groupList = new ArrayList<>();
     private FirebaseFirestore db;
+    private String currentUserId; // Store the current user ID here
 
     public AllGroupsFragment() {
         // Required empty public constructor
@@ -39,21 +72,23 @@ public class AllGroupsFragment extends Fragment implements GroupAdapter.OnGroupC
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_all_groups, container, false);
 
+        // Initialize RecyclerView and adapter
         recyclerView = view.findViewById(R.id.recycler_view_all_groups);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         groupAdapter = new GroupAdapter(groupList, this);
         recyclerView.setAdapter(groupAdapter);
 
-        FloatingActionButton fabCreateGroup = view.findViewById(R.id.fab_create_group);
-        fabCreateGroup.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showCreateGroupDialog();
-            }
-        });
+        // Access the MaterialButton from the layout
+        MaterialButton btnCreateGroup = view.findViewById(R.id.btn_create_group);
+        btnCreateGroup.setOnClickListener(v -> showCreateGroupDialog());
 
+        // Initialize Firebase Firestore instance
         db = FirebaseFirestore.getInstance();
 
+        // Retrieve the current user ID from SharedPreferences
+        currentUserId = getCurrentUserId();
+
+        // Fetch groups from Firestore
         fetchGroups();
 
         return view;
@@ -77,7 +112,6 @@ public class AllGroupsFragment extends Fragment implements GroupAdapter.OnGroupC
                         Log.e("FetchGroup", "Error getting documents: ", task.getException());
                     }
                 });
-
     }
 
     private void showCreateGroupDialog() {
@@ -103,17 +137,45 @@ public class AllGroupsFragment extends Fragment implements GroupAdapter.OnGroupC
     }
 
     private void createNewGroup(String groupName) {
-        List<String> members = new ArrayList<>(); // Initialize with an empty list or default members
-        Group newGroup = new Group(groupName, members);
+        // Ensure currentUserId is not null
+        if (currentUserId == null) {
+            Toast.makeText(getContext(), "Current user ID not found.", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
-        db.collection("BookClub").add(newGroup)
+        // Get the current timestamp
+        Timestamp timestamp = Timestamp.now();
+
+        // Create a Map with the group data
+        Map<String, Object> groupData = new HashMap<>();
+        groupData.put("bookClubName", groupName);
+        groupData.put("creationDate", timestamp);
+        groupData.put("creator", db.document("/Reader/" + currentUserId)); // Assuming currentUserId is the ID of the user document
+
+        // Add the group data to the "BookClub" collection
+        db.collection("BookClub")
+                .add(groupData)
                 .addOnSuccessListener(documentReference -> {
-                    newGroup.setId(documentReference.getId());
-                    groupList.add(newGroup);
-                    groupAdapter.notifyDataSetChanged();
+                    // Log the document reference ID
+                    Log.d("CreateGroup", "Document added with ID: " + documentReference.getId());
+
+                    // Display a success message
                     Toast.makeText(getContext(), "Group created", Toast.LENGTH_SHORT).show();
                 })
-                .addOnFailureListener(e -> Toast.makeText(getContext(), "Error creating group: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                .addOnFailureListener(e -> {
+                    // Log the error message
+                    Log.e("CreateGroup", "Error creating group: " + e.getMessage());
+
+                    // Display an error message
+                    Toast.makeText(getContext(), "Error creating group: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+    }
+
+
+    private String getCurrentUserId() {
+        // Retrieve current user ID from SharedPreferences
+        SharedPreferences sharedPreferences = getContext().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
+        return sharedPreferences.getString("UserID", null);
     }
 
     @Override
@@ -121,14 +183,9 @@ public class AllGroupsFragment extends Fragment implements GroupAdapter.OnGroupC
         Group selectedGroup = groupList.get(position);
         String groupId = selectedGroup.getId(); // Get the group ID
 
-        // Obtain the user ID from shared preferences
-        String userId = getActivity().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE).getString("UserID", "defaultUserId");
-
         // Pass both groupId and userId to openMessagesFragment
-        openMessagesFragment(groupId, userId);
+        openMessagesFragment(groupId, currentUserId);
     }
-
-
 
     private void openMessagesFragment(String groupId, String userId) {
         MessagesFragment messagesFragment = MessagesFragment.newInstance(groupId, userId);
@@ -137,5 +194,4 @@ public class AllGroupsFragment extends Fragment implements GroupAdapter.OnGroupC
                 .addToBackStack(null)
                 .commit();
     }
-
 }

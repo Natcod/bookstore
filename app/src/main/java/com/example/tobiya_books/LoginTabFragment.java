@@ -2,6 +2,7 @@ package com.example.tobiya_books;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -86,4 +87,6 @@ public class LoginTabFragment extends Fragment {
         startActivity(intent);
         getActivity().finish();
     }
+
+
 }

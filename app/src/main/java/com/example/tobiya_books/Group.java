@@ -1,6 +1,8 @@
 package com.example.tobiya_books;
 
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.PropertyName;
+import java.util.Date;
 import java.util.List;
 
 public class Group {
@@ -8,6 +10,8 @@ public class Group {
     @PropertyName("bookClubName")
     private String name;
     private List<String> members;
+    private Date creationDate;
+    private DocumentReference creator; // Use DocumentReference instead of String
 
     public Group() {
         // Required empty constructor for Firestore serialization
@@ -42,5 +46,21 @@ public class Group {
 
     public void setMembers(List<String> members) {
         this.members = members;
+    }
+
+    public Date getCreationDate() {
+        return creationDate;
+    }
+
+    public void setCreationDate(Date creationDate) {
+        this.creationDate = creationDate;
+    }
+
+    public DocumentReference getCreator() {
+        return creator;
+    }
+
+    public void setCreator(DocumentReference creator) {
+        this.creator = creator;
     }
 }
