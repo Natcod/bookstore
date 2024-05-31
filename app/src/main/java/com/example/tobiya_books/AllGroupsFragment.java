@@ -26,6 +26,7 @@ import com.google.firebase.firestore.QuerySnapshot;
 
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -98,6 +99,7 @@ public class AllGroupsFragment extends Fragment implements GroupAdapter.OnGroupC
         db.collection("BookClub").get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
+                        groupList.clear(); // Clear the list before adding new groups
                         for (DocumentSnapshot document : task.getResult()) {
                             Group group = document.toObject(Group.class);
                             if (group != null && group.getName() != null) {
@@ -107,12 +109,26 @@ public class AllGroupsFragment extends Fragment implements GroupAdapter.OnGroupC
                                 Log.e("FetchGroup", "Group name is null or group is null for document: " + document.getId());
                             }
                         }
+                        // Sort the groupList based on creationDate
+                        Collections.sort(groupList, (group1, group2) -> {
+                            if (group1.getCreationDate() == null && group2.getCreationDate() == null) {
+                                return 0; // Both dates are null, consider them equal
+                            } else if (group1.getCreationDate() == null) {
+                                return 1; // group1's date is null, place it after group2
+                            } else if (group2.getCreationDate() == null) {
+                                return -1; // group2's date is null, place it after group1
+                            }
+                            // Compare non-null creationDate values
+                            return group2.getCreationDate().compareTo(group1.getCreationDate());
+                        });
                         groupAdapter.notifyDataSetChanged();
                     } else {
                         Log.e("FetchGroup", "Error getting documents: ", task.getException());
                     }
                 });
     }
+
+
 
     private void showCreateGroupDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
