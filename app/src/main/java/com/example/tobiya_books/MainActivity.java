@@ -1,6 +1,11 @@
+// MainActivity.java
 package com.example.tobiya_books;
 
+import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
@@ -9,6 +14,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.widget.Button;
 import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
@@ -25,10 +31,8 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationBarView;
 import com.google.android.material.navigation.NavigationView;
-import com.google.firebase.FirebaseApp;
-import com.google.firebase.database.FirebaseDatabase;
 
-public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
+public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, BookDetailFragment.MainActivityListener {
 
     DrawerLayout drawerLayout;
     BottomNavigationView bottomNavigationView;
@@ -40,9 +44,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        FirebaseApp.initializeApp(this);
-        // Initialize Firebase
-        FirebaseDatabase.getInstance().setPersistenceEnabled(true);
 
         fab = findViewById(R.id.fab);
         toolbar = findViewById(R.id.toolbar);
@@ -66,13 +67,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 if (itemId == R.id.home) {
                     openFragment(new HomeFragment());
                     return true;
-                }else if (itemId == R.id.store) {
+                } else if (itemId == R.id.store) {
                     openFragment(new Store());
                     return true;
-                }else if (itemId == R.id.bookclub) {
+                } else if (itemId == R.id.bookclub) {
                     openFragment(new BookClub());
                     return true;
-                }else if (itemId == R.id.library) {
+                } else if (itemId == R.id.library) {
                     openFragment(new Library());
                     return true;
                 }
@@ -97,7 +98,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         transaction.commit();
     }
 
-    private void showBottomDialog() {
+    public void showBottomDialog() {
         final Dialog dialog = new Dialog(this);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialog.setContentView(R.layout.bottomsheetlayout);
@@ -107,6 +108,16 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             @Override
             public void onClick(View view) {
                 dialog.dismiss();
+            }
+        });
+
+        // Find the "Buy now" button in the dialog layout
+        Button buyNowButton = dialog.findViewById(R.id.buyButton);
+        buyNowButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Call the method in MainActivity
+                addPurchaseToDatabase();
             }
         });
 
@@ -126,11 +137,37 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             openFragment(new Setting());
         } else if (itemId == R.id.nav_about) {
             openFragment(new Aboutus());
-        } else if (itemId == R.id.nav_about) {
-            openFragment(new Aboutus());
+        } else if (itemId == R.id.nav_logout) {
+            showLogoutConfirmationDialog();
         }
         drawerLayout.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    private void showLogoutConfirmationDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage("Are you sure you want to logout?");
+        builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                // Perform logout operation here
+                // Redirect to MainActivity2
+                redirectToMainActivity2();
+            }
+        });
+        builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+        builder.show();
+    }
+
+    private void redirectToMainActivity2() {
+        // Redirect to MainActivity2
+        startActivity(new Intent(MainActivity.this, MainActivity2.class));
+        finish(); // Finish the current activity
     }
 
     @Override
@@ -140,5 +177,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         } else {
             super.onBackPressed();
         }
+    }
+
+    // Method implementation from the interface
+    @Override
+    public void addPurchaseToDatabase() {
+        // Implement the method to add purchase to the database
+        // You can put the implementation here or call another method that handles this
+        // For example:
+        // db.collection("Purchase").add(purchase)...
     }
 }

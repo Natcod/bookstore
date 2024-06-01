@@ -48,5 +48,8 @@ public class MainActivity2 extends AppCompatActivity {
                 tabLayout.selectTab(tabLayout.getTabAt(position));
             }
         });
+
+        // Set text color for TabLayout tabs
+        tabLayout.setTabTextColors(getResources().getColor(R.color.black), getResources().getColor(R.color.black));
     }
 }
