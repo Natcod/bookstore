@@ -1,3 +1,5 @@
+// BooksAdapter.java
+
 package com.example.tobiya_books;
 
 import android.content.Context;
@@ -69,10 +71,17 @@ public class BooksAdapter extends RecyclerView.Adapter<BooksAdapter.BookViewHold
                     .apply(new RequestOptions().placeholder(R.drawable.yoratorad).error(R.drawable.yehabeshajebdu))
                     .into(coverImageView);
 
-            itemView.setOnClickListener(v -> listener.onBookClick(book));
+            itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    // Inform the listener about the click event
+                    listener.onBookClick(book);
+                }
+            });
         }
     }
 
+    // Define an interface for the click listener
     public interface OnBookClickListener {
         void onBookClick(Book book);
     }

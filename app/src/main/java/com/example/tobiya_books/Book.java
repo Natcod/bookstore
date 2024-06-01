@@ -2,6 +2,7 @@ package com.example.tobiya_books;
 
 import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.DocumentReference;
+
 public class Book {
     private String title;
     private String author;
@@ -15,6 +16,8 @@ public class Book {
     private String genre;
     private String approvalStatus;
     private DocumentReference publisher;
+    private DocumentReference documentReference;  // Field for the document reference
+    private String fileURL;  // Field for the file URL
 
     // Default constructor required for Firebase
     public Book() {}
@@ -22,7 +25,8 @@ public class Book {
     // Full constructor for all fields
     public Book(String title, String author, String description, Timestamp publicationDate,
                 String coverImage, String language, double price, String accessType,
-                Timestamp uploadDate, String genre, String approvalStatus, DocumentReference publisher) {
+                Timestamp uploadDate, String genre, String approvalStatus, DocumentReference publisher,
+                DocumentReference documentReference, String fileURL) {
         this.title = title;
         this.author = author;
         this.description = description;
@@ -35,6 +39,8 @@ public class Book {
         this.genre = genre;
         this.approvalStatus = approvalStatus;
         this.publisher = publisher;
+        this.documentReference = documentReference;  // Initialize the document reference
+        this.fileURL = fileURL;  // Initialize the file URL
     }
 
     // Getters and setters for all fields
@@ -62,4 +68,8 @@ public class Book {
     public void setApprovalStatus(String approvalStatus) { this.approvalStatus = approvalStatus; }
     public DocumentReference getPublisher() { return publisher; }
     public void setPublisher(DocumentReference publisher) { this.publisher = publisher; }
+    public DocumentReference getDocumentReference() { return documentReference; }
+    public void setDocumentReference(DocumentReference documentReference) { this.documentReference = documentReference; }
+    public String getFileURL() { return fileURL; }
+    public void setFileURL(String fileURL) { this.fileURL = fileURL; }
 }

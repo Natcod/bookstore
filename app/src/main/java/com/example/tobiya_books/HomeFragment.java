@@ -89,26 +89,34 @@ public class HomeFragment extends Fragment implements BooksAdapter.OnBookClickLi
                 .addOnFailureListener(e -> Log.e(TAG, "Error fetching paid books", e));
     }
 
+
+
     @Override
     public void onBookClick(Book book) {
         // Handle book click
         Bundle bundle = new Bundle();
+        if (book.getDocumentReference() != null) {
+            bundle.putString("documentReference", book.getDocumentReference().getPath());
+        }
         bundle.putString("title", book.getTitle());
         bundle.putString("author", book.getAuthor());
         bundle.putString("description", book.getDescription());
+        bundle.putString("coverImageUrl", book.getCoverImage());
+        bundle.putString("language", book.getLanguage());
+        bundle.putDouble("price", book.getPrice());
+        bundle.putString("accessType", book.getAccessType());
+        bundle.putString("approvalStatus", book.getApprovalStatus());
+        bundle.putString("genre", book.getGenre());
+        bundle.putString("fileURL", book.getFileURL());
 
-        // Convert Timestamp to String for publicationDate
+        // Convert Timestamps to String for publicationDate and uploadDate
         String publicationDate = book.getPublicationDate().toDate().toString();
         bundle.putString("publicationDate", publicationDate);
+        String uploadDate = book.getUploadDate().toDate().toString();
+        bundle.putString("uploadDate", uploadDate);
 
-        // Check if getCoverImageName() exists or replace it with an appropriate method
-        bundle.putString("coverImageUrl", book.getCoverImage());
-
-        // Assuming price is a double, convert it to String
-        bundle.putString("price", String.valueOf(book.getPrice()));
-
-        bundle.putString("language", book.getLanguage());
-        bundle.putString("accessType", book.getAccessType());
+        // Assuming publisher is a DocumentReference, convert it to a String representation
+        bundle.putString("publisher", book.getPublisher().getPath());
 
         BookDetailFragment bookDetailFragment = new BookDetailFragment();
         bookDetailFragment.setArguments(bundle);
@@ -117,4 +125,7 @@ public class HomeFragment extends Fragment implements BooksAdapter.OnBookClickLi
                 .addToBackStack(null)
                 .commit();
     }
+
+
+
 }
