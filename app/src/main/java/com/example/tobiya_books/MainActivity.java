@@ -1,11 +1,16 @@
 // MainActivity.java
 package com.example.tobiya_books;
 
-import android.app.AlertDialog;
+
+
+// Inside MainActivity.java
+
+import android.Manifest;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
@@ -16,11 +21,15 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
@@ -32,6 +41,8 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationBarView;
 import com.google.android.material.navigation.NavigationView;
 
+import java.util.List;
+
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, BookDetailFragment.MainActivityListener {
 
     DrawerLayout drawerLayout;
@@ -39,6 +50,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     FragmentManager fragmentManager;
     Toolbar toolbar;
     FloatingActionButton fab;
+
+    public static final int STORAGE_PERMISSION_REQUEST_CODE = 100;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,6 +103,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 showBottomDialog();
             }
         });
+
+        // Request storage permission if not granted
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, STORAGE_PERMISSION_REQUEST_CODE);
+        }
     }
 
     private void openFragment(Fragment fragment) {
@@ -186,5 +204,18 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         // You can put the implementation here or call another method that handles this
         // For example:
         // db.collection("Purchase").add(purchase)...
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == STORAGE_PERMISSION_REQUEST_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Permission granted
+                // You can re-trigger the download that requires this permission if needed
+            } else {
+                Toast.makeText(this, "Permission denied. Cannot download PDF.", Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 }

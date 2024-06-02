@@ -18,6 +18,7 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 import java.util.ArrayList;
 import java.util.List;
+import timber.log.Timber;
 
 public class Library extends Fragment {
 
@@ -54,6 +55,9 @@ public class Library extends Fragment {
     }
 
     private void fetchDataAndDisplay() {
+        // Clear the books list to prevent duplication
+        books.clear();
+
         db.collection("Purchase")
                 .get()
                 .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
@@ -83,7 +87,7 @@ public class Library extends Fragment {
                         Book book = document.toObject(Book.class);
                         if (book != null) {
                             books.add(book);
-                            Log.d("LibraryFragment", "Book fetched: " + book.getTitle());
+                            Timber.tag("LibraryFragment").d("Book fetched: " + book.getTitle());
                             adapter.notifyDataSetChanged();
                         }
                     } else {
