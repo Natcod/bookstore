@@ -64,6 +64,7 @@ android:gravity="center_vertical"
         android:layout_height="wrap_content"
         android:text="Open"
         android:layout_marginTop="8dp"
+        android:backgroundTint="@color/purple_500"
         android:layout_marginStart="16dp"/>
 
 </LinearLayout>

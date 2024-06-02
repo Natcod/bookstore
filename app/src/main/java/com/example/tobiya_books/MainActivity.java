@@ -1,10 +1,4 @@
-// MainActivity.java
 package com.example.tobiya_books;
-
-
-
-// Inside MainActivity.java
-
 import android.Manifest;
 import android.app.Dialog;
 import android.content.Context;

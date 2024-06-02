@@ -5,6 +5,9 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:layout_marginTop="25dp"
+    android:layout_margin="17dp"
+    android:background="@color/lavender"
     tools:context=".BookClub">
 
     <!-- "All Groups" Button -->
@@ -13,10 +16,13 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:text="All Groups"
-        android:layout_margin="16dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/button_joined"
-        app:layout_constraintHorizontal_chainStyle="spread_inside"/>
+        android:layout_marginTop="24dp"
+        android:background="@drawable/button_background"
+    android:textColor="@android:color/white"
+    android:padding="12dp"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintEnd_toStartOf="@id/button_joined"
+    app:layout_constraintHorizontal_chainStyle="spread_inside"/>
 
     <!-- "Joined" Button -->
     <Button
@@ -24,16 +30,20 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:text="Joined"
-        android:layout_margin="16dp"
-        app:layout_constraintStart_toEndOf="@id/button_all_groups"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_chainStyle="spread_inside"/>
+        android:background="@drawable/button_background"
+    android:textColor="@android:color/white"
+    android:padding="12dp"
+    app:layout_constraintStart_toEndOf="@id/button_all_groups"
+    app:layout_constraintEnd_toEndOf="parent"
+    app:layout_constraintHorizontal_chainStyle="spread_inside"
+    app:layout_constraintTop_toTopOf="@id/button_all_groups"/>
 
     <!-- ViewPager2 for swiping between tabs -->
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/view_pager"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:background="@color/lavender"
         app:layout_constraintTop_toBottomOf="@id/button_all_groups"
         app:layout_constraintBottom_toTopOf="@id/tab_layout"
         app:layout_constraintStart_toStartOf="parent"
@@ -44,11 +54,10 @@
         android:id="@+id/tab_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="@color/lavender"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
-
-    <!-- FloatingActionButton for creating a new group -->
-
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

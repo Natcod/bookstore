@@ -68,7 +68,7 @@ public class BooksAdapter extends RecyclerView.Adapter<BooksAdapter.BookViewHold
             // Use Glide to load the cover image from a URL
             Glide.with(context)
                     .load(book.getCoverImage())
-                    .apply(new RequestOptions().placeholder(R.drawable.yoratorad).error(R.drawable.yehabeshajebdu))
+                    .apply(new RequestOptions().placeholder(R.drawable.logot).error(R.drawable.logot))
                     .into(coverImageView);
 
             itemView.setOnClickListener(new View.OnClickListener() {
