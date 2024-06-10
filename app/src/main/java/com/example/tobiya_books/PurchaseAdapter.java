@@ -1,7 +1,6 @@
 package com.example.tobiya_books;
 
 
-
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -23,10 +22,12 @@ public class PurchaseAdapter extends RecyclerView.Adapter<PurchaseAdapter.ViewHo
 
     private Context context;
     private List<Book> books;
+    private OnRemoveClickListener removeClickListener;
 
-    public PurchaseAdapter(Context context, List<Book> books) {
+    public PurchaseAdapter(Context context, List<Book> books, OnRemoveClickListener removeClickListener) {
         this.context = context;
         this.books = books;
+        this.removeClickListener = removeClickListener;
     }
 
     @NonNull
@@ -41,6 +42,7 @@ public class PurchaseAdapter extends RecyclerView.Adapter<PurchaseAdapter.ViewHo
         Book book = books.get(position);
         holder.bookTitle.setText(book.getTitle());
         holder.bookAuthor.setText(book.getAuthor());
+        holder.bookAccessType.setText(book.getAccessType()); // Bind accessType
 
         Glide.with(context)
                 .load(book.getCoverImage())
@@ -74,6 +76,12 @@ public class PurchaseAdapter extends RecyclerView.Adapter<PurchaseAdapter.ViewHo
                 });
             }
         });
+
+        holder.removeButton.setOnClickListener(view -> {
+            if (removeClickListener != null) {
+                removeClickListener.onRemoveClick(position);
+            }
+        });
     }
 
     private void openPdf(String filePath) {
@@ -94,14 +102,23 @@ public class PurchaseAdapter extends RecyclerView.Adapter<PurchaseAdapter.ViewHo
         ImageView bookCover;
         TextView bookTitle;
         TextView bookAuthor;
+        TextView bookAccessType; // New TextView for accessType
         Button openButton;
+        Button removeButton;
 
         public ViewHolder(View itemView) {
             super(itemView);
             bookCover = itemView.findViewById(R.id.book_cover);
             bookTitle = itemView.findViewById(R.id.book_title);
             bookAuthor = itemView.findViewById(R.id.book_author);
+            bookAccessType = itemView.findViewById(R.id.book_access_type); // Initialize the new TextView
             openButton = itemView.findViewById(R.id.open_button);
+            removeButton = itemView.findViewById(R.id.remove_button);
         }
+    }
+
+    // Interface for remove button click listener
+    public interface OnRemoveClickListener {
+        void onRemoveClick(int position);
     }
 }

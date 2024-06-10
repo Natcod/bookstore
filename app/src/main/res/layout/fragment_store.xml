@@ -1,65 +1,27 @@
-<?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@color/purple"
+    android:background="@color/lightWhite"
     tools:context=".Store">
 
     <com.google.android.material.tabs.TabLayout
         android:id="@+id/tab_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/purple_200" />
+        android:background="@color/var"
+        app:tabTextColor="@color/black"/>
 
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/view_pager"
         android:layout_width="match_parent"
-        android:background="@color/purple"
         android:layout_height="0dp"
         android:layout_weight="1"
+        android:background="@color/lightWhite"
         android:clipToPadding="false"
         android:scrollbars="vertical" />
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:background="@color/purple"
-        android:padding="8dp">
-
-        <Button
-            android:id="@+id/button_all"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:backgroundTint="@color/purple"
-            android:text="All" />
-
-        <Button
-            android:id="@+id/button_free"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:backgroundTint="@color/purple"
-            android:layout_weight="1"
-            android:text="Free" />
-
-        <Button
-            android:id="@+id/button_paid"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:backgroundTint="@color/purple"
-            android:layout_weight="1"
-            android:text="Paid" />
-
-        <Button
-            android:id="@+id/button_subscription"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:backgroundTint="@color/purple"
-            android:layout_weight="1"
-            android:text="Subscription" />
-    </LinearLayout>
 
 </LinearLayout>

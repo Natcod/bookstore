@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import timber.log.Timber;
 
-public class Library extends Fragment {
+public class Library extends Fragment implements PurchaseAdapter.OnRemoveClickListener {
 
     private FirebaseFirestore db;
     private RecyclerView recyclerView;
@@ -46,7 +46,7 @@ public class Library extends Fragment {
         recyclerView = view.findViewById(R.id.recycler_view_books);
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
 
-        adapter = new PurchaseAdapter(getActivity(), books);
+        adapter = new PurchaseAdapter(getActivity(), books, this); // Pass 'this' as the removeClickListener
         recyclerView.setAdapter(adapter);
 
         fetchDataAndDisplay();
@@ -67,7 +67,8 @@ public class Library extends Fragment {
                             for (QueryDocumentSnapshot document : task.getResult()) {
                                 DocumentReference ebookRef = document.getDocumentReference("ebook");
                                 if (ebookRef != null) {
-                                    fetchBookDetails(ebookRef);
+                                    String documentId = document.getId(); // Get the document ID
+                                    fetchBookDetails(ebookRef, documentId); // Pass the document ID to fetchBookDetails
                                 }
                             }
                         } else {
@@ -77,7 +78,7 @@ public class Library extends Fragment {
                 });
     }
 
-    private void fetchBookDetails(DocumentReference ebookRef) {
+    private void fetchBookDetails(DocumentReference ebookRef, String documentId) {
         ebookRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<DocumentSnapshot> task) {
@@ -86,6 +87,7 @@ public class Library extends Fragment {
                     if (document != null && document.exists()) {
                         Book book = document.toObject(Book.class);
                         if (book != null) {
+                            book.setDocumentReferencePath(documentId); // Set the document ID to the Book object
                             books.add(book);
                             Timber.tag("LibraryFragment").d("Book fetched: " + book.getTitle());
                             adapter.notifyDataSetChanged();
@@ -98,5 +100,46 @@ public class Library extends Fragment {
                 }
             }
         });
+    }
+
+    // Method to remove a book from the database
+    private void removeBookFromDatabase(String documentId) {
+        db.collection("Purchase").document(documentId)
+                .delete()
+                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if (task.isSuccessful()) {
+                            Log.d("LibraryFragment", "Book deleted successfully");
+                            int position = findBookPositionById(documentId);
+                            if (position != -1) {
+                                books.remove(position);
+                                adapter.notifyItemRemoved(position);
+                            }
+                        } else {
+                            Log.w("LibraryFragment", "Error deleting book", task.getException());
+                        }
+                    }
+                });
+    }
+
+    // Method to find the position of the book in the list based on its document ID
+    private int findBookPositionById(String documentId) {
+        for (int i = 0; i < books.size(); i++) {
+            Book book = books.get(i);
+            if (book.getDocumentReferencePath().equals(documentId)) {
+                return i;
+            }
+        }
+        return -1; // Book not found
+    }
+
+    // Method to handle remove button click in the adapter
+    @Override
+    public void onRemoveClick(int position) {
+        // Get the document ID of the book to remove
+        String documentId = books.get(position).getDocumentReferencePath();
+        // Call the method to remove the book from the database
+        removeBookFromDatabase(documentId);
     }
 }

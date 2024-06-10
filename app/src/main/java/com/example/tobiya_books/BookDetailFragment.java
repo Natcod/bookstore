@@ -18,12 +18,12 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
 import com.bumptech.glide.Glide;
+import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.CollectionReference;
-import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
-import com.google.firebase.Timestamp;
+import java.io.Serializable;
 import java.util.Date;
 
 import timber.log.Timber;
@@ -31,6 +31,18 @@ import timber.log.Timber;
 public class BookDetailFragment extends Fragment {
 
     private static final String TAG = "BookDetailFragment";
+
+    private static final String ARG_TITLE = "title";
+    private static final String ARG_AUTHOR = "author";
+    private static final String ARG_DESCRIPTION = "description";
+    private static final String ARG_PUBLICATION_DATE = "publicationDate";
+    private static final String ARG_COVER_IMAGE_URL = "coverImageUrl";
+    private static final String ARG_LANGUAGE = "language";
+    private static final String ARG_PRICE = "price";
+    private static final String ARG_ACCESS_TYPE = "accessType";
+    private static final String ARG_FILE_URL = "fileURL";
+    private static final String ARG_UPLOAD_DATE = "uploadDate";
+
     private ImageView coverImageView;
     private TextView titleTextView;
     private TextView authorTextView;
@@ -44,7 +56,39 @@ public class BookDetailFragment extends Fragment {
     private String documentId;
 
     private FirebaseFirestore db;
+   static  int  PRICE;
 
+    public static BookDetailFragment newInstance(String title, String author, String description, String publicationDate,
+                                                 String coverImageUrl, String language, double price, String accessType, String fileURL, String uploadDate) {
+        PRICE = (int)price ;
+        BookDetailFragment fragment = new BookDetailFragment();
+        Bundle args = new Bundle();
+        args.putString(ARG_TITLE, title);
+        args.putString(ARG_AUTHOR, author);
+        args.putString(ARG_DESCRIPTION, description);
+        args.putString(ARG_PUBLICATION_DATE, publicationDate);
+        args.putString(ARG_COVER_IMAGE_URL, coverImageUrl);
+        args.putString(ARG_LANGUAGE, language);
+        args.putDouble(ARG_PRICE, price);
+        args.putString(ARG_ACCESS_TYPE, accessType);
+        args.putString(ARG_FILE_URL, fileURL);
+        args.putString(ARG_UPLOAD_DATE, uploadDate);
+        fragment.setArguments(args);
+        return fragment;
+    }
+    private MainActivityListener mainActivityListener;
+
+    public interface MainActivityListener {
+        void addPurchaseToDatabase();
+    }
+
+    public static BookDetailFragment newInstance(Book book) {
+        BookDetailFragment fragment = new BookDetailFragment();
+        Bundle args = new Bundle();
+        args.putSerializable("book",  book);
+        fragment.setArguments(args);
+        return fragment;
+    }
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -69,26 +113,26 @@ public class BookDetailFragment extends Fragment {
         // Get data from arguments
         Bundle bundle = getArguments();
         if (bundle != null) {
-            String title = bundle.getString("title");
-            String author = bundle.getString("author");
-            String description = bundle.getString("description");
-            String publicationDate = bundle.getString("publicationDate");
-            String coverImageUrl = bundle.getString("coverImageUrl");
-            String language = bundle.getString("language");
-            double price = bundle.getDouble("price");
-            String accessType = bundle.getString("accessType");
-            String fileURL = bundle.getString("fileURL");
-            String uploadDate = bundle.getString("uploadDate");
-
+            String title = bundle.getString(ARG_TITLE);
+            String author = bundle.getString(ARG_AUTHOR);
+            String description = bundle.getString(ARG_DESCRIPTION);
+            String publicationDate = bundle.getString(ARG_PUBLICATION_DATE);
+            String coverImageUrl = bundle.getString(ARG_COVER_IMAGE_URL);
+            String language = bundle.getString(ARG_LANGUAGE);
+            double price = bundle.getDouble(ARG_PRICE);
+            String accessType = bundle.getString(ARG_ACCESS_TYPE);
+            String fileURL = bundle.getString(ARG_FILE_URL);
+            String uploadDate = bundle.getString(ARG_UPLOAD_DATE);
 
             // Set data to views
             titleTextView.setText("Title : " + title);
             authorTextView.setText("Author : " + author);
             descriptionTextView.setText("Description : " + description);
-            publicationDateTextView.setText("upload Date : " + uploadDate);
-            languageTextView.setText("url : " + fileURL);
+            publicationDateTextView.setText("Upload Date : " + uploadDate);
+            languageTextView.setText("Language : " + language);
             priceTextView.setText("Price : " + price);
-            accessTypeTextView.setText("documentID " + documentId);
+            accessTypeTextView.setText("AccessType : " + accessType);
+            publicationDateTextView.setText("Publication Date :"+ publicationDate);
 
             Glide.with(requireContext())
                     .load(coverImageUrl)
@@ -113,42 +157,33 @@ public class BookDetailFragment extends Fragment {
             }
 
             // Set button click listener
-            // Set button click listener
-            buyNowButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    // Add purchase to the Purchase table
-                    switch (accessType) {
-                        case "Free":
-                            // Do something for Free access type
-                            addPurchaseToDatabase();
-                            break;
-                        case "Paid":
-                            // Show payment options dialog
-                            openPaymentOptionDialog();
-                            break;
-                        case "Subscription":
-                            // Open subscription dialog
-                            ((MainActivity) requireActivity()).showBottomDialog();
-                            break;
-                        case "All":
-                            // Show all books in the table
-                            // Implement logic to show all books
-                            showAllBooks();
-                            break;
-                    }
+            buyNowButton.setOnClickListener(v -> {
+                // Add purchase to the Purchase table
+                switch (accessType) {
+                    case "Free":
+                        // Do something for Free access type
+                        addPurchaseToDatabase();
+                        break;
+                    case "Paid":
+                        // Show payment options dialog
+                        openPaymentOptionDialog();
+                        break;
+                    case "Subscription":
+                        // Open subscription dialog
+                        ((MainActivity) requireActivity()).showBottomDialog();
+                        break;
+                    case "All":
+                        // Show all books in the table
+                        // Implement logic to show all books
+                        showAllBooks();
+                        break;
                 }
             });
 
-
-
             // Set back button click listener
-            backButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    // Navigate back to HomeFragment
-                    getActivity().getSupportFragmentManager().popBackStack();
-                }
+            backButton.setOnClickListener(v -> {
+                // Navigate back to HomeFragment
+                getActivity().getSupportFragmentManager().popBackStack();
             });
 
             // Retrieve document ID based on criteria
@@ -172,13 +207,11 @@ public class BookDetailFragment extends Fragment {
 
                             String accessType = document.getString("accessType");
 
-
                             if (accessType != null) {
                                 switch (accessType) {
                                     case "Free":
                                         break;
                                     case "Paid":
-
                                         break;
                                     case "Subscription":
                                         ((MainActivity) requireActivity()).showBottomDialog();
@@ -192,7 +225,7 @@ public class BookDetailFragment extends Fragment {
                             Timber.tag(TAG).d("Document ID: %s", documentId);
                             // Update UI or perform other actions with the document ID
                             // For example, you can set it to a TextView
-                            accessTypeTextView.setText("Document ID: " + documentId);
+                            accessTypeTextView.setText("Access Type " + accessType);
                         }
                     } else {
                         // Handle errors
@@ -207,7 +240,6 @@ public class BookDetailFragment extends Fragment {
                 });
     }
 
-
     public void addPurchaseToDatabase() {
         // Retrieve the user ID from shared preferences
         SharedPreferences sharedPreferences = getActivity().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
@@ -217,7 +249,7 @@ public class BookDetailFragment extends Fragment {
             // Create a new Purchase object
             Purchase purchase = new Purchase();
             purchase.setEbook(db.collection("Ebook").document(documentId)); // Use setEbook() instead of setEbookRef()
-            purchase.setPrice(200); // Set the price according to your requirement
+            purchase.setPrice( PRICE  ); // Set the price according to your requirement
             purchase.setPurchaseDate(new Timestamp(new Date()));
             purchase.setReader(userId); // Use setReader() instead of setReaderRef()
 
@@ -238,6 +270,7 @@ public class BookDetailFragment extends Fragment {
             Toast.makeText(getContext(), "User ID or Document ID is null", Toast.LENGTH_SHORT).show();
         }
     }
+
     private void openPaymentOptionDialog() {
         // Create an AlertDialog builder
         AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
@@ -300,9 +333,8 @@ public class BookDetailFragment extends Fragment {
                     }
                 });
     }
-    public interface MainActivityListener {
-        void addPurchaseToDatabase();
-    }
+
+
 
     // Variable to hold reference to MainActivityListener
     private MainActivityListener listener;
@@ -321,6 +353,4 @@ public class BookDetailFragment extends Fragment {
     private void callMethodInMainActivity() {
         listener.addPurchaseToDatabase();
     }
-
 }
-

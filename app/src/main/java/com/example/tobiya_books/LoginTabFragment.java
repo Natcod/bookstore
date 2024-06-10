@@ -27,12 +27,19 @@ public class LoginTabFragment extends Fragment {
     private Button loginButton;
 
     private FirebaseFirestore db;
+    private SharedPreferences sharedPreferences;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_login_tab, container, false);
 
         db = FirebaseFirestore.getInstance();
+        sharedPreferences = getActivity().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
+
+        if (isLoggedIn()) {
+            // If user is already logged in, open MainActivity directly
+            openMainActivity(sharedPreferences.getString("UserID", ""));
+        }
 
         usernameEditText = view.findViewById(R.id.username_edit_text);
         passwordEditText = view.findViewById(R.id.password_edit_text);
@@ -60,6 +67,7 @@ public class LoginTabFragment extends Fragment {
                                         String actualPassword = document.getString("password");
                                         if (password.equals(actualPassword)) {
                                             String userId = document.getId(); // Get the document ID as user ID
+                                            saveLoginStatus(userId); // Save login status
                                             openMainActivity(userId);
                                         } else {
                                             Toast.makeText(getContext(), "Incorrect password", Toast.LENGTH_SHORT).show();
@@ -80,13 +88,20 @@ public class LoginTabFragment extends Fragment {
 
     private void openMainActivity(String userId) {
         Intent intent = new Intent(getActivity(), MainActivity.class);
-        getActivity().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
-                .edit()
-                .putString("UserID", userId)
-                .apply();
         startActivity(intent);
         getActivity().finish();
     }
 
+    private void saveLoginStatus(String userId) {
+        // Save login status
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString("UserID", userId);
+        editor.putBoolean("LoggedIn", true);
+        editor.apply();
+    }
 
+    private boolean isLoggedIn() {
+        // Check if user is already logged in
+        return sharedPreferences.getBoolean("LoggedIn", false);
+    }
 }

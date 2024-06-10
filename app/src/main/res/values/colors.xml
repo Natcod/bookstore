@@ -9,5 +9,11 @@
     <color name="purple">#645394</color>
     <color name="lavender">#645394</color>
     <color name="purCon">  #FFFAC0</color>
+    <color name="lightWhite">#eff2f7</color>
+    <color name="var">#e9ebf0</color>
+    <color name="wheat">#F5DEB3</color>
+    <color name="tab">#b5bac4</color>
+    <color name="group">#eceef2</color>
+    <color name="danger">#a61010</color>
 
 </resources>

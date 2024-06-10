@@ -13,6 +13,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
@@ -65,6 +66,7 @@ public class JoinedFragment extends Fragment implements GroupAdapter.OnGroupClic
                             QuerySnapshot querySnapshot = task.getResult();
                             if (querySnapshot != null) {
                                 Log.d(TAG, "Query snapshot size: " + querySnapshot.size());
+                                List<Group> tempGroupList = new ArrayList<>();
                                 for (QueryDocumentSnapshot document : querySnapshot) {
                                     DocumentReference bookClubRef = document.getDocumentReference("bookClub");
                                     if (bookClubRef != null) {
@@ -73,8 +75,19 @@ public class JoinedFragment extends Fragment implements GroupAdapter.OnGroupClic
                                             if (bookClubDoc.exists()) {
                                                 Group group = bookClubDoc.toObject(Group.class);
                                                 group.setId(bookClubDoc.getId());
-                                                groupList.add(group);
+                                                tempGroupList.add(group);
                                                 Log.d(TAG, "Group added: " + group.getName());
+                                                // Sort the groups based on joinDate (descending)
+                                                tempGroupList.sort((g1, g2) -> {
+                                                    Timestamp t1 = document.getTimestamp("joinDate");
+                                                    Timestamp t2 = document.getTimestamp("joinDate");
+                                                    if (t1 != null && t2 != null) {
+                                                        return t2.compareTo(t1);
+                                                    }
+                                                    return 0;
+                                                });
+                                                groupList.clear();
+                                                groupList.addAll(tempGroupList);
                                                 groupAdapter.notifyDataSetChanged();
                                             } else {
                                                 Log.d(TAG, "Book club document does not exist");
@@ -97,6 +110,7 @@ public class JoinedFragment extends Fragment implements GroupAdapter.OnGroupClic
             Log.d(TAG, "Context is null");
         }
     }
+
 
     private void createNewGroup(String groupName) {
         List<String> members = new ArrayList<>(); // Initialize with an empty list or default members

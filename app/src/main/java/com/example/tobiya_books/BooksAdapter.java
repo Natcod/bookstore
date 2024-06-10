@@ -22,13 +22,13 @@ public class BooksAdapter extends RecyclerView.Adapter<BooksAdapter.BookViewHold
     private List<Book> books;
     private LayoutInflater inflater;
     private OnBookClickListener listener;
-    private Context context; // Context is needed for Glide
+    private Context context;
 
     public BooksAdapter(Context context, List<Book> books, OnBookClickListener listener) {
         this.inflater = LayoutInflater.from(context);
         this.books = books;
         this.listener = listener;
-        this.context = context; // Initialize context
+        this.context = context;
     }
 
     @NonNull
@@ -46,7 +46,12 @@ public class BooksAdapter extends RecyclerView.Adapter<BooksAdapter.BookViewHold
 
     @Override
     public int getItemCount() {
-        return books.size();
+        return books.isEmpty() ? 0 : books.size();
+    }
+
+    public void updateList(List<Book> newBooks) {
+        books = newBooks;
+        notifyDataSetChanged();
     }
 
     static class BookViewHolder extends RecyclerView.ViewHolder {
@@ -65,7 +70,6 @@ public class BooksAdapter extends RecyclerView.Adapter<BooksAdapter.BookViewHold
             titleTextView.setText(book.getTitle());
             authorTextView.setText(book.getAuthor());
 
-            // Use Glide to load the cover image from a URL
             Glide.with(context)
                     .load(book.getCoverImage())
                     .apply(new RequestOptions().placeholder(R.drawable.logot).error(R.drawable.logot))
@@ -74,14 +78,12 @@ public class BooksAdapter extends RecyclerView.Adapter<BooksAdapter.BookViewHold
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    // Inform the listener about the click event
                     listener.onBookClick(book);
                 }
             });
         }
     }
 
-    // Define an interface for the click listener
     public interface OnBookClickListener {
         void onBookClick(Book book);
     }

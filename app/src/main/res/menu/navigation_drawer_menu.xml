@@ -1,13 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    tools:showIn = "navigation_view">
+    tools:showIn = "navigation_view"
+    app:cardBackgroundColor="@color/purple"
+   >
     <group
         android:checkableBehavior="single">
         <item
             android:id="@+id/nav_Profile"
             android:icon="@drawable/baseline_account_circle_24"
-            android:title="Profile"/>
+            android:title="Profile"
+            android:textColor="@color/lightWhite"
+            />
         <item
             android:id="@+id/nav_settings"
             android:icon="@drawable/png_transparent_computer_icons_logo_youtube_symbol_youtube_area"

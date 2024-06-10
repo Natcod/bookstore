@@ -1,0 +1,21 @@
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="@android:color/transparent" />
+    <stroke
+        android:width="1dp"
+        android:color="@android:color/white" />
+    <size
+        android:width="24dp"
+        android:height="24dp" />
+    <corners android:radius="2dp" />
+    <padding
+        android:bottom="6dp"
+        android:left="6dp"
+        android:right="6dp"
+        android:top="6dp" />
+    <solid android:color="@android:color/white" />
+    <item>
+        <path
+            android:fillColor="@android:color/white"
+            android:pathData="M0 0 L12 24 L24 0 Z" />
+    </item>
+</shape>

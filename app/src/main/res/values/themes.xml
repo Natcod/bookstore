@@ -1,21 +1,24 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
-    <style name="Base.Theme.AndroidBookstore" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+    <style name="Base.Theme.AndroidBookstore" parent="Theme.MaterialComponents.DayNight.NoActionBar.Bridge">
         <!-- Customize your light theme here. -->
         <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
         <item name="colorPrimary">@color/black</item>
         <item name="colorPrimaryVariant">@color/white</item>
         <item name="colorOnPrimary">@color/white</item>
         <item name="android:textColorPrimary">@color/black</item>
-
+        <item name="android:textColor">@color/purple</item>
         <!-- Secondary brand color. -->
         <!-- Status bar color. -->
         <item name="android:statusBarColor">@color/lavender</item>
         <!-- Customize your theme here. -->
     </style>
-    <style name="Theme.AndroidBookstore." parent="Base.Theme.AndroidBookstore"/>
+    <style name="Theme.AndroidBookstore." parent="Base.Theme.AndroidBookstore">
+    <item name="android:textColor">@color/purple</item>
+    </style>
     <style name="ThemeOverlay.AppCompat.navTheme">
-        <item name="colorPrimary">@color/white</item>
+        <item name="colorPrimary">@color/purple</item>
+        <item name="android:textColor">@color/purple</item>
     </style>
 
     <style name="DialogAnimation">
@@ -23,5 +26,15 @@
         <item name="android:windowExitAnimation">@anim/slide_out_bottom</item>
     </style>
 
-    <style name="Theme.AndroidBookstore" parent="Base.Theme.AndroidBookstore" />
+    <style name="Theme.AndroidBookstore" parent="Base.Theme.AndroidBookstore" >
+        <item name="android:textColor">@color/purple</item>
+    </style>
+    <style name="ThemeOverlay.AppCompat.Dark.ActionBar"  parent="Base.Theme.AndroidBookstore">
+    <item name="android:textColor">@color/purple</item>
+        <item name="android:textSize">15sp</item>
+    </style>
+    <style name="TextAppearance.AppCompat.Widget.ActionBar.Title" parent="@android:style/TextAppearance">
+        <item name="android:textColor">@color/purple</item>
+        <item name="android:textSize">5dp</item>
+    </style>
 </resources>

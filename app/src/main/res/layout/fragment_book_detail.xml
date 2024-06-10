@@ -6,30 +6,47 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:textColor="@color/purple">
 
+        <!-- Back button with arrow icon -->
+        <Button
+            android:id="@+id/button_back"
+            android:layout_width="35dp"
+            android:layout_height="60dp"
+            android:background="@drawable/ic_back"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="16dp" />
+
+
+        <!-- Cover Image -->
         <ImageView
             android:id="@+id/detail_cover_image"
             android:layout_width="match_parent"
             android:layout_height="400dp"
             android:scaleType="fitCenter"
             android:src="@drawable/logot" />
+
+        <!-- Title -->
         <TextView
             android:id="@+id/detail_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textSize="24sp"
             android:textStyle="bold"
-            android:text="Title" />
+            android:text="Title"
+            android:textColor="@color/purple"/>
 
+        <!-- Author -->
         <TextView
             android:id="@+id/detail_author"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textSize="20sp"
-            android:textColor="@color/white"
+            android:textColor="@color/purple"
             android:text="Author" />
 
+        <!-- Language -->
         <TextView
             android:id="@+id/detail_language"
             android:layout_width="match_parent"
@@ -37,20 +54,25 @@
             android:textSize="18sp"
             android:text="Language" />
 
+        <!-- Price -->
         <TextView
             android:id="@+id/detail_price"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textSize="18sp"
-            android:text="Price" />
+            android:text="Price"
+            android:textColor="@color/purple"/>
 
+        <!-- Access Type -->
         <TextView
             android:id="@+id/detail_access_type"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textSize="18sp"
-            android:text="Access Type" />
+            android:text="Access Type"
+            android:textColor="@color/purple"/>
 
+        <!-- Description -->
         <TextView
             android:id="@+id/detail_description"
             android:layout_width="match_parent"
@@ -58,12 +80,14 @@
             android:textSize="18sp"
             android:text="Description" />
 
+        <!-- Publication Date -->
         <TextView
             android:id="@+id/detail_publication_date"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textSize="18sp"
-            android:text="Publication Date" />
+            android:text="Publication Date"
+            android:textColor="@color/purple"/>
 
         <!-- Layout for buttons -->
         <LinearLayout
@@ -79,16 +103,8 @@
                 android:text="Buy Now"
                 android:layout_weight="1"/>
 
-
         </LinearLayout>
 
-        <!-- Back button -->
-        <Button
-            android:id="@+id/button_back"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Back"
-            android:layout_marginTop="16dp" />
     </LinearLayout>
 
 </ScrollView>

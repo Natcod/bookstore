@@ -87,7 +87,25 @@ public class SignupTabFragment extends Fragment {
                         if (!queryDocumentSnapshots.isEmpty()) {
                             Toast.makeText(getContext(), "Username is already taken", Toast.LENGTH_SHORT).show();
                         } else {
-                            registerUser(username, email, password, firstName, lastName);
+                            // Check if the email already exists
+                            readerCollection.whereEqualTo("email", email).get()
+                                    .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                                        @Override
+                                        public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                                            if (!queryDocumentSnapshots.isEmpty()) {
+                                                Toast.makeText(getContext(), "Email is already registered", Toast.LENGTH_SHORT).show();
+                                            } else {
+                                                // Register the user
+                                                registerUser(username, email, password, firstName, lastName);
+                                            }
+                                        }
+                                    })
+                                    .addOnFailureListener(new OnFailureListener() {
+                                        @Override
+                                        public void onFailure(@NonNull Exception e) {
+                                            Toast.makeText(getContext(), "Error checking email: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                        }
+                                    });
                         }
                     }
                 })
@@ -98,6 +116,7 @@ public class SignupTabFragment extends Fragment {
                     }
                 });
     }
+
 
     private void registerUser(String username, String email, String password, String firstName, String lastName) {
         // Insert data into Firestore

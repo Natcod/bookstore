@@ -1,0 +1,8 @@
+<resources>
+
+    <!-- Custom style for the application label -->
+    <style name="CustomLabelTextStyle">
+        <item name="android:textColor">@color/purple</item>
+    </style>
+   
+</resources>

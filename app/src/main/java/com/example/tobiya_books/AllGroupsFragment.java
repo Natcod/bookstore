@@ -142,6 +142,9 @@ public class AllGroupsFragment extends Fragment implements GroupAdapter.OnGroupC
                     // Log the document reference ID
                     Log.d("CreateGroup", "Document added with ID: " + documentReference.getId());
 
+                    // Automatically add the user as a member of the newly created group
+                    addUserToGroup(documentReference.getId());
+
                     // Display a success message
                     Toast.makeText(getContext(), "Group created", Toast.LENGTH_SHORT).show();
                 })
@@ -153,6 +156,33 @@ public class AllGroupsFragment extends Fragment implements GroupAdapter.OnGroupC
                     Toast.makeText(getContext(), "Error creating group: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
     }
+
+    private void addUserToGroup(String groupId) {
+        // Get the current timestamp
+        Timestamp joinDate = Timestamp.now();
+
+        // Create a Map with the member data
+        Map<String, Object> memberData = new HashMap<>();
+        memberData.put("reader", db.collection("Reader").document(currentUserId));
+        memberData.put("bookClub", db.collection("BookClub").document(groupId));
+        memberData.put("joinDate", joinDate);
+
+        // Add the member data to the "BookClubMember" collection
+        db.collection("BookClubMember")
+                .add(memberData)
+                .addOnSuccessListener(documentReference -> {
+                    // Log the document reference ID
+                    Log.d("AddMember", "Member added with ID: " + documentReference.getId());
+                })
+                .addOnFailureListener(e -> {
+                    // Log the error message
+                    Log.e("AddMember", "Error adding member: " + e.getMessage());
+
+                    // Display an error message
+                    Toast.makeText(getContext(), "Error adding member: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+    }
+
 
 
     private String getCurrentUserId() {

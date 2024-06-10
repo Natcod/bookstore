@@ -9,16 +9,11 @@ import com.google.android.material.tabs.TabLayoutMediator;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 
 public class Store extends Fragment {
 
     private TabLayout tabLayout;
     private ViewPager2 viewPager;
-    private Button buttonAll;
-    private Button buttonFree;
-    private Button buttonPaid;
-    private Button buttonSubscription;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
@@ -27,11 +22,6 @@ public class Store extends Fragment {
 
         tabLayout = view.findViewById(R.id.tab_layout);
         viewPager = view.findViewById(R.id.view_pager);
-
-        buttonAll = view.findViewById(R.id.button_all);
-        buttonFree = view.findViewById(R.id.button_free);
-        buttonPaid = view.findViewById(R.id.button_paid);
-        buttonSubscription = view.findViewById(R.id.button_subscription);
 
         BookPagerAdapter adapter = new BookPagerAdapter(getActivity());
         viewPager.setAdapter(adapter);
@@ -53,12 +43,6 @@ public class Store extends Fragment {
                             break;
                     }
                 }).attach();
-
-        // Set button click listeners to switch tabs
-        buttonAll.setOnClickListener(v -> viewPager.setCurrentItem(0));
-        buttonFree.setOnClickListener(v -> viewPager.setCurrentItem(1));
-        buttonPaid.setOnClickListener(v -> viewPager.setCurrentItem(2));
-        buttonSubscription.setOnClickListener(v -> viewPager.setCurrentItem(3));
 
         return view;
     }

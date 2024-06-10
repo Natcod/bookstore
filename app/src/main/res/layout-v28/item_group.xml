@@ -19,10 +19,9 @@
             android:id="@+id/group_name_text_view"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="24sp"
+            android:textSize="18sp"
             android:text="Group Name"
             android:textAllCaps="true"
-            android:autoSizeMaxTextSize="@dimen/material_emphasis_high_type"
             android:textFontWeight="@integer/google_play_services_version"
             android:background="@color/group"
             android:textColor="@color/purple"/>

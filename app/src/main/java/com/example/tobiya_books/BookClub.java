@@ -1,12 +1,9 @@
 package com.example.tobiya_books;
 
-
-
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -16,7 +13,6 @@ import androidx.viewpager2.widget.ViewPager2;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 import com.google.firebase.FirebaseApp;
-import com.google.firebase.database.FirebaseDatabase;
 
 public class BookClub extends Fragment {
 
@@ -48,7 +44,6 @@ public class BookClub extends Fragment {
 
         // Initialize Firebase
         FirebaseApp.initializeApp(requireContext());
-//        FirebaseDatabase.getInstance().setPersistenceEnabled(true);
 
         if (getArguments() != null) {
             mParam1 = getArguments().getString(ARG_PARAM1);
@@ -78,22 +73,6 @@ public class BookClub extends Fragment {
                     break;
             }
         }).attach();
-
-        Button allGroupsButton = view.findViewById(R.id.button_all_groups);
-        allGroupsButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                viewPager.setCurrentItem(0); // Switch to the "All Groups" tab
-            }
-        });
-
-        Button joinedButton = view.findViewById(R.id.button_joined);
-        joinedButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                viewPager.setCurrentItem(1); // Switch to the "Joined" tab
-            }
-        });
 
         return view;
     }
