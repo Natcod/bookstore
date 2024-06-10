@@ -3,6 +3,7 @@ package com.example.tobiya_books;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
@@ -58,6 +59,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private SearchView searchView;
     private RecyclerView recyclerView;
     private BooksAdapter booksAdapter;
+    private SharedPreferences sharedPreferences;
     private static final String TAG = "MainActivity";
 
     @Override
@@ -78,7 +80,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         navigationView.setNavigationItemSelectedListener(this);
 
         bottomNavigationView = findViewById(R.id.bottom_navigation);
-       bottomNavigationView.setBackground(null);
+        bottomNavigationView.setBackground(null);
 
         bottomNavigationView.setOnItemSelectedListener(new BottomNavigationView.OnItemSelectedListener() {
             @Override
@@ -116,6 +118,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         booksAdapter = new BooksAdapter(this, new ArrayList<>(), this);
 
         recyclerView.setAdapter(booksAdapter);
+
+        sharedPreferences = getSharedPreferences("AppPrefs", MODE_PRIVATE);
     }
 
     private void openFragment(Fragment fragment) {
@@ -148,7 +152,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-
                 performSearch(query);
                 searchView.setQuery("", false);
                 searchView.clearFocus();
@@ -190,8 +193,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private Dialog searchDialog = null; // Make it a field to check its status
 
-
-
     private void updateSearchResultsDialog(List<Book> results) {
         if (searchDialog != null && searchDialog.isShowing()) {
             setupDialogWithResults(searchDialog, results);
@@ -218,7 +219,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private void showSearchResultsDialog(List<Book> results) {
         Dialog searchDialog = new Dialog(this);
         searchDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-       searchDialog.setContentView(R.layout.dialog_search_results);
+        searchDialog.setContentView(R.layout.dialog_search_results);
 
         RecyclerView searchResultsRecyclerView = searchDialog.findViewById(R.id.searchResultsRecyclerView);
         searchResultsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -254,10 +255,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         searchDialog.getWindow().getAttributes().windowAnimations = R.style.DialogAnimation;
         searchDialog.getWindow().setGravity(Gravity.CENTER);
     }
-
-
-
-
 
     public void showBottomDialog() {
         final Dialog dialog = new Dialog(this);
@@ -309,7 +306,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                redirectToMainActivity2();
+                logout();
             }
         });
         builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
@@ -321,8 +318,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         builder.show();
     }
 
-    private void redirectToMainActivity2() {
-        startActivity(new Intent(MainActivity.this, MainActivity2.class));
+    private void logout() {
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putBoolean("LoggedIn", false);
+        editor.putString("UserID", null);
+        editor.apply();
+
+        Intent intent = new Intent(MainActivity.this, MainActivity2.class); // Assuming MainActivity2 handles the login
+        startActivity(intent);
         finish();
     }
 
@@ -355,6 +358,4 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         transaction.addToBackStack(null); // Optional: Add fragment to back stack
         transaction.commit();
     }
-
 }
-
