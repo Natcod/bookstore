@@ -1,55 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="8dp">
+    android:layout_margin="8dp"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="4dp"
+    app:cardBackgroundColor="@color/var">
 
-    <TextView
-        android:id="@+id/message_text_view"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Message"
-        android:textColor="@color/purple"
-        android:textSize="16sp"
-        android:layout_alignParentEnd="true"
-        android:layout_marginEnd="8dp"
-         />
+        android:orientation="vertical"
+        android:padding="8dp"
+        >
 
-    <TextView
-        android:id="@+id/sender_text_view"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Sender"
-        android:textSize="14sp"
-        android:textColor="@android:color/darker_gray"
-        android:layout_below="@id/message_text_view"
-        android:layout_alignParentEnd="true"
-        android:layout_marginEnd="8dp"
-        android:layout_marginTop="8dp"/>
+        <TextView
+            android:id="@+id/sender_text_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Sender"
+            android:textColor="@android:color/darker_gray"
+            android:textStyle="bold" />
 
+        <TextView
+            android:id="@+id/message_text_view"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="Message"
+            android:textColor="@android:color/black"
+            android:textSize="16sp" />
 
-    <TextView
-        android:id="@+id/sent_date_time_text_view"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Sent DateTime"
-        android:textSize="12sp"
-        android:textColor="@android:color/darker_gray"
-        android:layout_below="@id/sender_text_view"
-        android:layout_alignParentEnd="true"
-        android:layout_marginEnd="8dp"
-        android:layout_marginTop="8dp"/>
+        <TextView
+            android:id="@+id/sent_date_time_text_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="Timestamp"
+            android:textColor="@android:color/darker_gray"
+            android:textSize="12sp" />
 
-    <!-- Invisible View to align the message views to the left -->
-    <View
-        android:id="@+id/left_alignment_view"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:visibility="gone"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentBottom="true"
-        android:layout_toStartOf="@id/message_text_view"
-        android:layout_marginEnd="8dp"/>
-
-</RelativeLayout>
+        <!-- This view will be used for alignment purpose -->
+        <View
+            android:id="@+id/left_alignment_view"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:visibility="gone" />
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

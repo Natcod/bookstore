@@ -33,12 +33,12 @@ public class MessagesFragment extends Fragment {
     private List<Message> messageList = new ArrayList<>();
     private FirebaseFirestore db;
     private String groupId;
-    private String userId; // Added field to store the user ID
+    private String userId;
     private EditText inputMessage;
     private Button sendButton;
     private Button joinButton;
     private boolean openedFromAllGroups = false;
-    private boolean isMember = false; // Variable to store membership status
+    private boolean isMember = false;
 
     private static final String TAG = "MessagesFragment";
 
@@ -69,7 +69,7 @@ public class MessagesFragment extends Fragment {
         // Initialize Firebase Firestore
         db = FirebaseFirestore.getInstance();
 
-        // Get the boolean indicating whether opened from AllGroupsFragment
+        // Get arguments
         if (getArguments() != null) {
             groupId = getArguments().getString("groupId");
             userId = getArguments().getString("userId");
@@ -80,6 +80,19 @@ public class MessagesFragment extends Fragment {
         messageAdapter = new MessageAdapter(messageList, userId);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setAdapter(messageAdapter);
+
+        // Add scroll listener to load older messages on scroll up
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+                LinearLayoutManager layoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
+                if (layoutManager != null && layoutManager.findFirstCompletelyVisibleItemPosition() == 0) {
+                    // Load more messages when scrolled to the top
+                    loadOlderMessages();
+                }
+            }
+        });
 
         // Check membership status
         checkMembershipStatus();
@@ -96,6 +109,7 @@ public class MessagesFragment extends Fragment {
     private void fetchMessages() {
         db.collection("Message")
                 .whereEqualTo("bookClub", db.collection("BookClub").document(groupId))
+                .orderBy("sentDateTime")
                 .addSnapshotListener((value, error) -> {
                     if (error != null) {
                         Log.e(TAG, "Error getting messages", error);
@@ -111,8 +125,10 @@ public class MessagesFragment extends Fragment {
                             Log.d(TAG, "Message fetched: " + message.getMessage());
                         }
                         // Sort messages in chronological order
-                        Collections.sort(messageList, (m1, m2) -> m2.getSentDateTime().compareTo(m1.getSentDateTime()));
+                        Collections.sort(messageList, (m1, m2) -> m1.getSentDateTime().compareTo(m2.getSentDateTime()));
                         messageAdapter.notifyDataSetChanged();
+                        // Scroll to the bottom to show the latest messages
+                        recyclerView.scrollToPosition(messageList.size() - 1);
                     }
                 });
     }
@@ -125,7 +141,7 @@ public class MessagesFragment extends Fragment {
         }
 
         DocumentReference groupRef = db.collection("BookClub").document(groupId);
-        DocumentReference senderRef = db.collection("Reader").document(userId); // Use the user ID as sender ID
+        DocumentReference senderRef = db.collection("Reader").document(userId);
 
         Map<String, Object> messageData = new HashMap<>();
         messageData.put("bookClub", groupRef);
@@ -135,14 +151,15 @@ public class MessagesFragment extends Fragment {
 
         db.collection("Message").add(messageData)
                 .addOnSuccessListener(documentReference -> {
-                    inputMessage.getText().clear(); // Clear the input field
+                    inputMessage.getText().clear();
                     Toast.makeText(getContext(), "Message sent", Toast.LENGTH_SHORT).show();
+                    // Scroll to the bottom to show the latest message
+                    recyclerView.scrollToPosition(messageList.size() - 1);
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(getContext(), "Error sending message: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
     }
-
 
     private void joinGroup() {
         DocumentReference groupRef = db.collection("BookClub").document(groupId);
@@ -156,8 +173,8 @@ public class MessagesFragment extends Fragment {
         db.collection("BookClubMember").add(memberData)
                 .addOnSuccessListener(documentReference -> {
                     Toast.makeText(getContext(), "Joined group successfully", Toast.LENGTH_SHORT).show();
-                    isMember = true; // Update membership status
-                    updateUI(); // Update UI after joining the group
+                    isMember = true;
+                    updateUI();
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(getContext(), "Error joining group: " + e.getMessage(), Toast.LENGTH_SHORT).show();
@@ -189,6 +206,7 @@ public class MessagesFragment extends Fragment {
             joinButton.setVisibility(View.GONE);
             inputMessage.setVisibility(View.VISIBLE);
             sendButton.setVisibility(View.VISIBLE);
+            fetchMessages();
         } else {
             if (openedFromAllGroups) {
                 joinButton.setVisibility(View.VISIBLE);
@@ -198,8 +216,15 @@ public class MessagesFragment extends Fragment {
                 joinButton.setVisibility(View.GONE);
                 inputMessage.setVisibility(View.VISIBLE);
                 sendButton.setVisibility(View.VISIBLE);
+                fetchMessages();
             }
         }
-        fetchMessages(); // Fetch messages after updating UI
+    }
+
+    private void loadOlderMessages() {
+        // Implement logic to load older messages, possibly using Firestore's pagination features
+        // For simplicity, this is a placeholder
+        Log.d(TAG, "Load older messages...");
+        // Here you would typically load older messages by querying Firestore with appropriate limits and offsets
     }
 }
