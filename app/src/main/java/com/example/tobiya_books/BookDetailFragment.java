@@ -16,6 +16,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 
 import com.bumptech.glide.Glide;
 import com.google.firebase.Timestamp;
@@ -23,7 +24,6 @@ import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
-import java.io.Serializable;
 import java.util.Date;
 
 import timber.log.Timber;
@@ -56,11 +56,11 @@ public class BookDetailFragment extends Fragment {
     private String documentId;
 
     private FirebaseFirestore db;
-   static  int  PRICE;
+    static int PRICE;
 
     public static BookDetailFragment newInstance(String title, String author, String description, String publicationDate,
                                                  String coverImageUrl, String language, double price, String accessType, String fileURL, String uploadDate) {
-        PRICE = (int)price ;
+        PRICE = (int) price;
         BookDetailFragment fragment = new BookDetailFragment();
         Bundle args = new Bundle();
         args.putString(ARG_TITLE, title);
@@ -76,6 +76,7 @@ public class BookDetailFragment extends Fragment {
         fragment.setArguments(args);
         return fragment;
     }
+
     private MainActivityListener mainActivityListener;
 
     public interface MainActivityListener {
@@ -85,10 +86,11 @@ public class BookDetailFragment extends Fragment {
     public static BookDetailFragment newInstance(Book book) {
         BookDetailFragment fragment = new BookDetailFragment();
         Bundle args = new Bundle();
-        args.putSerializable("book",  book);
+        args.putSerializable("book", book);
         fragment.setArguments(args);
         return fragment;
     }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -132,65 +134,123 @@ public class BookDetailFragment extends Fragment {
             languageTextView.setText("Language : " + language);
             priceTextView.setText("Price : " + price);
             accessTypeTextView.setText("AccessType : " + accessType);
-            publicationDateTextView.setText("Publication Date :"+ publicationDate);
+            publicationDateTextView.setText("Publication Date : " + publicationDate);
 
             Glide.with(requireContext())
                     .load(coverImageUrl)
                     .into(coverImageView);
 
-            // Set button label based on access type
-            if (accessType != null) {
-                switch (accessType) {
-                    case "Free":
-                        buyNowButton.setText("Add to Library");
-                        break;
-                    case "Paid":
-                        buyNowButton.setText("Buy Now");
-                        break;
-                    case "Subscription":
-                        buyNowButton.setText("Subscribe");
-                        break;
-                    case "All":
-                        // Do something for All access type
-                        break;
-                }
-            }
-
-            // Set button click listener
-            buyNowButton.setOnClickListener(v -> {
-                // Add purchase to the Purchase table
-                switch (accessType) {
-                    case "Free":
-                        // Do something for Free access type
-                        addPurchaseToDatabase();
-                        break;
-                    case "Paid":
-                        // Show payment options dialog
-                        openPaymentOptionDialog();
-                        break;
-                    case "Subscription":
-                        // Open subscription dialog
-                        ((MainActivity) requireActivity()).showBottomDialog();
-                        break;
-                    case "All":
-                        // Show all books in the table
-                        // Implement logic to show all books
-                        showAllBooks();
-                        break;
-                }
-            });
+            // Retrieve document ID based on criteria
+            retrieveDocumentId(fileURL);
 
             // Set back button click listener
             backButton.setOnClickListener(v -> {
                 // Navigate back to HomeFragment
                 getActivity().getSupportFragmentManager().popBackStack();
             });
-
-            // Retrieve document ID based on criteria
-            retrieveDocumentId(fileURL);
         }
 
         return view;
+    }
+
+    private void checkIfBookInLibrary(String fileURL, String accessType) {
+        // Retrieve the user ID from shared preferences
+        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
+        String userId = sharedPreferences.getString("UserID", null);
+
+        if (userId != null) {
+            // Reference to your "Purchase" collection
+            CollectionReference purchaseCollection = db.collection("Purchase");
+
+            // Query to check if the user already purchased the book
+            purchaseCollection
+                    .whereEqualTo("reader", userId)
+                    .whereEqualTo("ebook", db.document("Ebook/" + documentId))
+                    .get()
+                    .addOnCompleteListener(task -> {
+                        if (task.isSuccessful() && !task.getResult().isEmpty()) {
+                            // Book is already in the user's library
+                            buyNowButton.setText("Already Added to Library");
+                            buyNowButton.setOnClickListener(v -> openLibraryFragment());
+                        } else {
+                            // Book is not in the user's library
+                            setBuyNowButtonClickListener(accessType);
+                        }
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.e(TAG, "Error checking purchase", e);
+                        setBuyNowButtonClickListener(accessType);
+                    });
+        } else {
+            Toast.makeText(getContext(), "User ID is null", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void setBuyNowButtonClickListener(String accessType) {
+        // Set button label and click listener based on access type
+        if (accessType != null) {
+            switch (accessType) {
+                case "Free":
+                    buyNowButton.setText("Add to Library");
+                    buyNowButton.setOnClickListener(v -> addPurchaseToDatabase());
+                    break;
+                case "Paid":
+                    buyNowButton.setText("Buy Now");
+                    buyNowButton.setOnClickListener(v -> openPaymentOptionDialog());
+                    break;
+                case "Subscription":
+                    buyNowButton.setText("Subscribe");
+                    buyNowButton.setOnClickListener(v -> checkSubscriptionAndAddToLibrary());
+                    break;
+                case "All":
+                    // Handle 'All' access type if necessary
+                    break;
+            }
+        }
+    }
+
+    private void checkSubscriptionAndAddToLibrary() {
+        // Retrieve the user ID from shared preferences
+        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
+        String userId = sharedPreferences.getString("UserID", null);
+
+        if (userId != null) {
+            // Reference to your "Subscription" collection
+            CollectionReference subscriptionCollection = db.collection("Subscription");
+
+            // Perform a query to get the subscription document for the user
+            subscriptionCollection
+                    .whereEqualTo("reader", db.document("Reader/" + userId))
+                    .get()
+                    .addOnCompleteListener(task -> {
+                        if (task.isSuccessful() && !task.getResult().isEmpty()) {
+                            DocumentSnapshot document = task.getResult().getDocuments().get(0);
+                            Timestamp endDate = document.getTimestamp("endDate");
+
+                            if (endDate != null && endDate.toDate().after(new Date())) {
+                                // Subscription is valid
+                                addPurchaseToDatabase();
+                            } else {
+                                // Subscription has expired
+                                showSubscriptionDialog();
+                            }
+                        } else {
+                            // No subscription found or error
+                            showSubscriptionDialog();
+                        }
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.e(TAG, "Error checking subscription", e);
+                        showSubscriptionDialog();
+                    });
+        } else {
+            Toast.makeText(getContext(), "User ID is null", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void showSubscriptionDialog() {
+        Toast.makeText(getContext(), "Please subscribe to access this book.", Toast.LENGTH_SHORT).show();
+        ((MainActivity) requireActivity()).showBottomDialog();
     }
 
     private void retrieveDocumentId(String fileURL) {
@@ -202,31 +262,19 @@ public class BookDetailFragment extends Fragment {
                 .whereEqualTo("fileURL", fileURL)
                 .get()
                 .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        for (DocumentSnapshot document : task.getResult()) {
+                    if (task.isSuccessful() && !task.getResult().isEmpty()) {
+                        DocumentSnapshot document = task.getResult().getDocuments().get(0);
 
-                            String accessType = document.getString("accessType");
+                        // Get the document ID
+                        documentId = document.getId();
+                        // Log the document ID
+                        Timber.tag(TAG).d("Document ID: %s", documentId);
+                        // Update UI or perform other actions with the document ID
+                        // For example, you can set it to a TextView
+                        accessTypeTextView.setText("Access Type: " + document.getString("accessType"));
 
-                            if (accessType != null) {
-                                switch (accessType) {
-                                    case "Free":
-                                        break;
-                                    case "Paid":
-                                        break;
-                                    case "Subscription":
-                                        ((MainActivity) requireActivity()).showBottomDialog();
-                                        break;
-                                }
-                            }
-
-                            // Get the document ID
-                            documentId = document.getId();
-                            // Log the document ID
-                            Timber.tag(TAG).d("Document ID: %s", documentId);
-                            // Update UI or perform other actions with the document ID
-                            // For example, you can set it to a TextView
-                            accessTypeTextView.setText("Access Type " + accessType);
-                        }
+                        // Check if the book is already in the user's library
+                        checkIfBookInLibrary(fileURL, document.getString("accessType"));
                     } else {
                         // Handle errors
                         String errorMessage = "Error getting documents: ";
@@ -249,7 +297,7 @@ public class BookDetailFragment extends Fragment {
             // Create a new Purchase object
             Purchase purchase = new Purchase();
             purchase.setEbook(db.collection("Ebook").document(documentId)); // Use setEbook() instead of setEbookRef()
-            purchase.setPrice( PRICE  ); // Set the price according to your requirement
+            purchase.setPrice(PRICE); // Set the price according to your requirement
             purchase.setPurchaseDate(new Timestamp(new Date()));
             purchase.setReader(userId); // Use setReader() instead of setReaderRef()
 
@@ -310,47 +358,16 @@ public class BookDetailFragment extends Fragment {
         }
     }
 
-    private void showAllBooks() {
-        // Fetch data from Firestore collection and display in the UI
-        db.collection("Ebook")
-                .get()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        for (DocumentSnapshot document : task.getResult()) {
-                            // Get book details from document
-                            String title = document.getString("title");
-                            String author = document.getString("author");
-                            String description = document.getString("description");
-                            // Display book details (you can update this part based on your UI)
-                            titleTextView.setText("Title : " + title);
-                            authorTextView.setText("Author : " + author);
-                            descriptionTextView.setText("Description : " + description);
-                            // You can continue similarly for other fields
-                        }
-                    } else {
-                        // Handle errors
-                        Log.e(TAG, "Error getting documents: ", task.getException());
-                    }
-                });
+    private void openLibraryFragment() {
+
+        Library libraryFragment = new Library();
+
+        FragmentManager fragmentManager = getParentFragmentManager();
+        fragmentManager.beginTransaction()
+                .replace(R.id.fragment_container, libraryFragment)
+                .addToBackStack(null)
+                .commit();
     }
 
-
-
-    // Variable to hold reference to MainActivityListener
-    private MainActivityListener listener;
-
-    @Override
-    public void onAttach(@NonNull Context context) {
-        super.onAttach(context);
-        if (context instanceof MainActivityListener) {
-            listener = (MainActivityListener) context;
-        } else {
-            throw new ClassCastException(context.toString() + " must implement MainActivityListener");
-        }
-    }
-
-    // Method to call the method in MainActivity
-    private void callMethodInMainActivity() {
-        listener.addPurchaseToDatabase();
-    }
 }
+
