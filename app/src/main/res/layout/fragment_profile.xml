@@ -5,8 +5,6 @@
     android:layout_height="match_parent"
     tools:context=".Profile">
 
-    <!-- TODO: Update blank fragment layout -->
-
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -38,10 +36,9 @@
             android:layout_width="100dp"
             android:layout_height="wrap_content"
             android:text="Set Profile Photo"
-            android:background="@color/lavender"
+            android:background="@drawable/rounded_corner_background"
             android:layout_gravity="center_horizontal"
             android:layout_marginTop="8dp" />
-
 
         <EditText
             android:id="@+id/editTextname"
@@ -77,10 +74,11 @@
             android:hint="Email"
             android:textColorHint="@color/black"
             android:background="@drawable/custom_round_background"
-            android:inputType="phone"
+            android:inputType="textEmailAddress"
             android:layout_marginTop="10dp"
             android:layout_marginStart="16dp"
             android:layout_marginEnd="16dp" />
+
         <EditText
             android:id="@+id/editTextemail"
             android:layout_width="match_parent"
@@ -90,7 +88,7 @@
             android:background="@drawable/custom_round_background"
             android:layout_marginTop="10dp"
             android:textColorHint="@color/black"
-            android:inputType="textEmailAddress"
+            android:inputType="text"
             android:layout_marginStart="16dp"
             android:layout_marginEnd="16dp" />
 
@@ -99,7 +97,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Save"
-            android:background="@color/lavender"
+            android:background="@drawable/rounded_corner_background"
             android:layout_marginTop="26dp"
             android:layout_marginStart="16dp"
             android:layout_marginEnd="16dp"

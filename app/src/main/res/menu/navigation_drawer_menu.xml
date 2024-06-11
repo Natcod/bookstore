@@ -3,7 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     tools:showIn = "navigation_view"
-    app:cardBackgroundColor="@color/purple"
+    app:itemTextColor="@color/purple"
+
    >
     <group
         android:checkableBehavior="single">

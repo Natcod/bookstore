@@ -27,7 +27,7 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:id="@+id/toolbar"
-            app:itemTextColor="@color/purple"
+            app:itemTextColor="@color/white"
             android:elevation="4dp"
             android:background="@color/purple"
             android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
@@ -106,9 +106,9 @@
         android:id="@+id/navigation_drawer"
         android:layout_gravity="start"
 
-        app:itemIconTint="@color/purple"
-        app:itemTextColor="@color/purple"
-        android:background="@color/black"
+        app:itemIconTint="@color/var"
+        app:itemTextColor="@color/var"
+        android:background="@color/purple"
         android:theme="@style/ThemeOverlay.AppCompat.navTheme"
         app:headerLayout="@layout/nav_header"
         app:menu="@menu/navigation_drawer_menu"/>
