@@ -17,7 +17,7 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.PopupWindow;
+import android.widget.RadioButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -40,14 +40,13 @@ import com.google.android.gms.tasks.Task;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, BooksAdapter.OnBookClickListener, BookDetailFragment.MainActivityListener {
 
@@ -60,6 +59,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private RecyclerView recyclerView;
     private BooksAdapter booksAdapter;
     private SharedPreferences sharedPreferences;
+    private FirebaseFirestore db;
+
+    private Dialog dialog;
     private static final String TAG = "MainActivity";
 
     @Override
@@ -120,6 +122,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         recyclerView.setAdapter(booksAdapter);
 
         sharedPreferences = getSharedPreferences("AppPrefs", MODE_PRIVATE);
+
+        db = FirebaseFirestore.getInstance();
     }
 
     private void openFragment(Fragment fragment) {
@@ -216,6 +220,89 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         Toast.makeText(this, "No results found", Toast.LENGTH_SHORT).show();
     }
 
+    // Fetch the subscription prices from Firestore
+    private void fetchSubscriptionPrices() {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("SubscriptionDetail")
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful()) {
+                            QuerySnapshot querySnapshot = task.getResult();
+                            if (querySnapshot != null && !querySnapshot.isEmpty()) {
+                                DocumentSnapshot document = querySnapshot.getDocuments().get(0);
+                                Log.d(TAG, "DocumentSnapshot data: " + document.getData());
+                                Double dailyPrice = document.getDouble("dailyPrice");
+                                Double weeklyPrice = document.getDouble("weeklyPrice");
+                                Double monthlyPrice = document.getDouble("monthlyPrice");
+                                Double yearlyPrice = document.getDouble("yearlyPrice");
+
+                                if (dailyPrice != null && weeklyPrice != null && monthlyPrice != null && yearlyPrice != null) {
+                                    // Update subscription prices
+                                    updateSubscriptionPrices(dailyPrice, weeklyPrice, monthlyPrice, yearlyPrice);
+                                } else {
+                                    Log.d(TAG, "One or more subscription prices are null");
+                                }
+                            } else {
+                                Log.d(TAG, "No documents found in the collection");
+                            }
+                        } else {
+                            Log.d(TAG, "get failed with ", task.getException());
+                        }
+                    }
+                });
+    }
+
+    // Update the subscription prices in the bottom sheet dialog
+    private void updateSubscriptionPrices(double dailyPrice, double weeklyPrice, double monthlyPrice, double yearlyPrice) {
+        RadioButton dailyRadioButton = dialog.findViewById(R.id.radioButton_daily);
+        RadioButton weeklyRadioButton = dialog.findViewById(R.id.radioButton_weekly);
+        RadioButton monthlyRadioButton = dialog.findViewById(R.id.radioButton_monthly);
+        RadioButton yearlyRadioButton = dialog.findViewById(R.id.radioButton_yearly);
+
+        if (dailyRadioButton != null && weeklyRadioButton != null && monthlyRadioButton != null && yearlyRadioButton != null) {
+            dailyRadioButton.setText(String.format("Daily - %.2f ETB", dailyPrice));
+            weeklyRadioButton.setText(String.format("Weekly - %.2f ETB", weeklyPrice));
+            monthlyRadioButton.setText(String.format("Monthly - %.2f ETB", monthlyPrice));
+            yearlyRadioButton.setText(String.format("Yearly - %.2f ETB", yearlyPrice));
+        } else {
+            Log.e(TAG, "One or more radio buttons are null");
+        }
+    }
+
+
+    // Show the bottom sheet dialog and fetch subscription prices
+    public void showBottomDialog() {
+        dialog = new Dialog(this);
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialog.setContentView(R.layout.bottomsheetlayout);
+
+        ImageView cancelButton = dialog.findViewById(R.id.cancelButton);
+        cancelButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                dialog.dismiss();
+            }
+        });
+
+        Button buyNowButton = dialog.findViewById(R.id.buyButton);
+        buyNowButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                addPurchaseToDatabase();
+            }
+        });
+
+        fetchSubscriptionPrices(); // Fetch and update prices before showing the dialog
+
+        dialog.show();
+        dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        dialog.getWindow().getAttributes().windowAnimations = R.style.DialogAnimation;
+        dialog.getWindow().setGravity(Gravity.BOTTOM);
+    }
+
     private void showSearchResultsDialog(List<Book> results) {
         Dialog searchDialog = new Dialog(this);
         searchDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -254,34 +341,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         searchDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         searchDialog.getWindow().getAttributes().windowAnimations = R.style.DialogAnimation;
         searchDialog.getWindow().setGravity(Gravity.CENTER);
-    }
-
-    public void showBottomDialog() {
-        final Dialog dialog = new Dialog(this);
-        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        dialog.setContentView(R.layout.bottomsheetlayout);
-
-        ImageView cancelButton = dialog.findViewById(R.id.cancelButton);
-        cancelButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                dialog.dismiss();
-            }
-        });
-
-        Button buyNowButton = dialog.findViewById(R.id.buyButton);
-        buyNowButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                addPurchaseToDatabase();
-            }
-        });
-
-        dialog.show();
-        dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-        dialog.getWindow().getAttributes().windowAnimations = R.style.DialogAnimation;
-        dialog.getWindow().setGravity(Gravity.BOTTOM);
     }
 
     @Override
