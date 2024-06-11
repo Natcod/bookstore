@@ -1,6 +1,7 @@
 package com.example.tobiya_books;
 
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -57,21 +58,30 @@ public class PurchaseAdapter extends RecyclerView.Adapter<PurchaseAdapter.ViewHo
             if (DownloadUtil.isBookDownloaded(context, fileName)) {
                 openPdf(context.getFilesDir() + "/" + fileName);
             } else {
-                // Show a toast indicating that the download has started
-                Toast.makeText(context, "Downloading PDF...", Toast.LENGTH_SHORT).show();
+                // Show a ProgressDialog indicating that the download has started
+                ProgressDialog progressDialog = new ProgressDialog(context);
+                progressDialog.setMessage("Downloading PDF...");
+                progressDialog.setCancelable(false);
+                progressDialog.show();
 
                 DownloadUtil.downloadPdf(context, pdfUrl, fileName, new DownloadUtil.DownloadCallback() {
                     @Override
                     public void onDownloadComplete(String filePath) {
-                        // Show a toast indicating that the download is complete
-                        Toast.makeText(context, "Download complete. Opening PDF...", Toast.LENGTH_SHORT).show();
-                        // Open the PDF after download completes
-                        openPdf(filePath);
+                        // Dismiss the ProgressDialog and update the UI on the main thread
+                        ((FragmentActivity) context).runOnUiThread(() -> {
+                            progressDialog.dismiss();
+                            Toast.makeText(context, "Download complete. Opening PDF...", Toast.LENGTH_SHORT).show();
+                            openPdf(filePath);
+                        });
                     }
 
                     @Override
                     public void onDownloadError(Exception e) {
-                        Toast.makeText(context, "Failed to download PDF: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        // Dismiss the ProgressDialog and update the UI on the main thread
+                        ((FragmentActivity) context).runOnUiThread(() -> {
+                            progressDialog.dismiss();
+                            Toast.makeText(context, "Failed to download PDF: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        });
                     }
                 });
             }

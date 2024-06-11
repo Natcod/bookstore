@@ -7,7 +7,7 @@ public class Purchase {
     private DocumentReference ebook;
     private int price;
     private Timestamp purchaseDate;
-    private String reader;
+    private DocumentReference reader;
 
     public Purchase() {
         // Default constructor required for Firestore
@@ -37,11 +37,11 @@ public class Purchase {
         this.purchaseDate = purchaseDate;
     }
 
-    public String getReader() {
+    public DocumentReference getReader() {
         return reader;
     }
 
-    public void setReader(String reader) {
+    public void setReader(DocumentReference reader) {
         this.reader = reader;
     }
 }

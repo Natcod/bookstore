@@ -21,6 +21,7 @@ import androidx.fragment.app.FragmentManager;
 import com.bumptech.glide.Glide;
 import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
@@ -164,7 +165,7 @@ public class BookDetailFragment extends Fragment {
 
             // Query to check if the user already purchased the book
             purchaseCollection
-                    .whereEqualTo("reader", userId)
+                    .whereEqualTo("reader", db.collection("Reader").document(userId))
                     .whereEqualTo("ebook", db.document("Ebook/" + documentId))
                     .get()
                     .addOnCompleteListener(task -> {
@@ -220,7 +221,7 @@ public class BookDetailFragment extends Fragment {
 
             // Perform a query to get the subscription document for the user
             subscriptionCollection
-                    .whereEqualTo("reader", db.document("Reader/" + userId))
+                    .whereEqualTo("reader", db.collection("Reader").document(userId))
                     .get()
                     .addOnCompleteListener(task -> {
                         if (task.isSuccessful() && !task.getResult().isEmpty()) {
@@ -296,10 +297,10 @@ public class BookDetailFragment extends Fragment {
         if (userId != null && documentId != null) {
             // Create a new Purchase object
             Purchase purchase = new Purchase();
-            purchase.setEbook(db.collection("Ebook").document(documentId)); // Use setEbook() instead of setEbookRef()
+            purchase.setEbook(db.collection("Ebook").document(documentId));
             purchase.setPrice(PRICE); // Set the price according to your requirement
             purchase.setPurchaseDate(new Timestamp(new Date()));
-            purchase.setReader(userId); // Use setReader() instead of setReaderRef()
+            purchase.setReader(db.collection("Reader").document(userId));
 
             // Add the purchase to the Purchase table
             db.collection("Purchase")
@@ -370,4 +371,3 @@ public class BookDetailFragment extends Fragment {
     }
 
 }
-

@@ -1,14 +1,18 @@
 package com.example.tobiya_books;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentReference;
@@ -16,8 +20,10 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
+
 import java.util.ArrayList;
 import java.util.List;
+
 import timber.log.Timber;
 
 public class Library extends Fragment implements PurchaseAdapter.OnRemoveClickListener {
@@ -49,23 +55,36 @@ public class Library extends Fragment implements PurchaseAdapter.OnRemoveClickLi
         adapter = new PurchaseAdapter(getActivity(), books, this); // Pass 'this' as the removeClickListener
         recyclerView.setAdapter(adapter);
 
-        fetchDataAndDisplay();
+        // Fetch data and display only if the user is authenticated and their ID is obtained
+        fetchAndDisplayBooks();
 
         return view;
     }
 
-    private void fetchDataAndDisplay() {
+    private void fetchAndDisplayBooks() {
+        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
+        String currentUserId = sharedPreferences.getString("UserID", null);
+
+        if (currentUserId != null) {
+            fetchBooksForUser(currentUserId);
+        } else {
+            Log.e("LibraryFragment", "Current user ID is null");
+        }
+    }
+
+    private void fetchBooksForUser(String userId) {
         // Clear the books list to prevent duplication
         books.clear();
 
         db.collection("Purchase")
+                .whereEqualTo("reader", db.document("Reader/" + userId)) // Filter by reader field
                 .get()
                 .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                     @Override
                     public void onComplete(@NonNull Task<QuerySnapshot> task) {
                         if (task.isSuccessful()) {
                             for (QueryDocumentSnapshot document : task.getResult()) {
-                                DocumentReference ebookRef = document.getDocumentReference("ebook");
+                                DocumentReference ebookRef = (DocumentReference) document.get("ebook");
                                 if (ebookRef != null) {
                                     String documentId = document.getId(); // Get the document ID
                                     fetchBookDetails(ebookRef, documentId); // Pass the document ID to fetchBookDetails
@@ -77,6 +96,7 @@ public class Library extends Fragment implements PurchaseAdapter.OnRemoveClickLi
                     }
                 });
     }
+
 
     private void fetchBookDetails(DocumentReference ebookRef, String documentId) {
         ebookRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
