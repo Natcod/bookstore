@@ -39,7 +39,15 @@
             android:background="@drawable/rounded_corner_background"
             android:layout_gravity="center_horizontal"
             android:layout_marginTop="8dp" />
-
+        <TextView
+            android:id="@+id/labelName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Name"
+            android:textColor="@color/black"
+            android:layout_marginTop="10dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp" />
         <EditText
             android:id="@+id/editTextname"
             android:layout_width="match_parent"
@@ -52,7 +60,15 @@
             android:layout_marginTop="10dp"
             android:layout_marginStart="16dp"
             android:layout_marginEnd="16dp" />
-
+        <TextView
+            android:id="@+id/labelUsername"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Username"
+            android:textColor="@color/black"
+            android:layout_marginTop="10dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp" />
         <EditText
             android:id="@+id/editTextUsername"
             android:layout_width="match_parent"
@@ -62,6 +78,15 @@
             android:textColorHint="@color/black"
             android:background="@drawable/custom_round_background"
             android:inputType="text"
+            android:layout_marginTop="10dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp" />
+        <TextView
+            android:id="@+id/labelEmail"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Email"
+            android:textColor="@color/black"
             android:layout_marginTop="10dp"
             android:layout_marginStart="16dp"
             android:layout_marginEnd="16dp" />
@@ -78,7 +103,15 @@
             android:layout_marginTop="10dp"
             android:layout_marginStart="16dp"
             android:layout_marginEnd="16dp" />
-
+        <TextView
+            android:id="@+id/labelBio"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Bio"
+            android:textColor="@color/black"
+            android:layout_marginTop="10dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp" />
         <EditText
             android:id="@+id/editTextemail"
             android:layout_width="match_parent"
