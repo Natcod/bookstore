@@ -26,10 +26,7 @@ public class Profile extends Fragment {
     private ImageView imageViewProfilePhoto;
 
     private FirebaseFirestore db;
-    private SharedPreferences sharedPreferences;
 
-    private static final String SHARED_PREFS_NAME = "user_prefs";
-    private static final String KEY_USER_ID = "user_id";
     private static final String KEY_LOGGED_IN = "LoggedIn";
 
     public Profile() {
@@ -44,7 +41,6 @@ public class Profile extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         db = FirebaseFirestore.getInstance();
-        sharedPreferences = getActivity().getSharedPreferences(SHARED_PREFS_NAME, Context.MODE_PRIVATE);
     }
 
     @Override
@@ -64,9 +60,10 @@ public class Profile extends Fragment {
         editTextBio = view.findViewById(R.id.editTextemail);
         imageViewProfilePhoto = view.findViewById(R.id.imageViewProfilePhoto);
 
-        String userId = sharedPreferences.getString(KEY_USER_ID, null);
-        if (userId != null && !userId.isEmpty()) {
-            fetchUserProfile(userId);
+        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
+        String currentUserId = sharedPreferences.getString("UserID", null);
+        if (currentUserId != null && !currentUserId.isEmpty()) {
+            fetchUserProfile(currentUserId);
         } else {
             Toast.makeText(getActivity(), "User not logged in", Toast.LENGTH_SHORT).show();
         }
@@ -79,7 +76,7 @@ public class Profile extends Fragment {
                 if (task.isSuccessful()) {
                     DocumentSnapshot document = task.getResult();
                     if (document != null && document.exists()) {
-                        String name = document.getString("name");
+                        String name = document.getString("firstName");
                         String username = document.getString("username");
                         String email = document.getString("email");
                         String bio = document.getString("bio");
@@ -97,6 +94,13 @@ public class Profile extends Fragment {
                                     .error(R.drawable.baseline_account_circle_24)
                                     .into(imageViewProfilePhoto);
                         }
+
+                        // Store the username in SharedPreferences
+                        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
+                        SharedPreferences.Editor editor = sharedPreferences.edit();
+                        editor.putString("Username", username);
+                        editor.putString("FirstName", name);
+                        editor.apply();
                     } else {
                         Toast.makeText(getActivity(), "User profile not found", Toast.LENGTH_SHORT).show();
                     }

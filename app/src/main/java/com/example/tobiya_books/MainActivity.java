@@ -69,7 +69,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private static final String TYPE_MONTHLY = "Monthly";
     private static final String TYPE_YEARLY = "Yearly";
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -86,6 +85,22 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         NavigationView navigationView = findViewById(R.id.navigation_drawer);
         navigationView.setNavigationItemSelectedListener(this);
+
+        // Get the navigation header view
+        View headerView = navigationView.getHeaderView(0);
+
+        // Find the TextViews in the header
+        TextView firstNameTextView = headerView.findViewById(R.id.firstName);
+        TextView usernameTextView = headerView.findViewById(R.id.username);
+
+        // Get firstName and username from SharedPreferences
+        sharedPreferences = getSharedPreferences("AppPrefs", MODE_PRIVATE);
+        String firstName = sharedPreferences.getString("FirstName", "FirstName");
+        String username = sharedPreferences.getString("Username", "Username");
+
+        // Set firstName and username in the header
+        firstNameTextView.setText(firstName);
+        usernameTextView.setText("@" + username);
 
         bottomNavigationView = findViewById(R.id.bottom_navigation);
         bottomNavigationView.setBackground(null);
@@ -117,8 +132,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         booksAdapter = new BooksAdapter(this, new ArrayList<>(), this);
         recyclerView.setAdapter(booksAdapter);
-
-        sharedPreferences = getSharedPreferences("AppPrefs", MODE_PRIVATE);
 
         db = FirebaseFirestore.getInstance();
     }
@@ -387,4 +400,3 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         return new Timestamp(calendar.getTime());
     }
 }
-
