@@ -15,5 +15,6 @@
     <color name="tab">#b5bac4</color>
     <color name="group">#eceef2</color>
     <color name="danger">#a61010</color>
+    <color name="yellow">#FFFF00</color>
 
 </resources>
