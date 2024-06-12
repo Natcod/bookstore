@@ -16,11 +16,29 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
+            <!-- Recent Books Section -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="New Arrival E-Books"
+                android:textAllCaps="true"
+                android:textColor="@color/purple"
+                android:textSize="18sp"
+                android:padding="16dp" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recycler_view_recent_books"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:scrollbars="horizontal"
+                android:paddingBottom="16dp" />
+
             <!-- Free Books Section -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Free Books"
+                android:text="Free E-Books"
                 android:textAllCaps="true"
                 android:textColor="@color/purple"
                 android:textSize="18sp"
@@ -38,7 +56,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Paid Books"
+                android:text="Paid E-Books"
                 android:textAllCaps="true"
                 android:textColor="@color/purple"
                 android:textSize="18sp"
@@ -50,24 +68,6 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:scrollbars="horizontal" />
-
-            <!-- Recent Books Section -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Recent Books"
-                android:textAllCaps="true"
-                android:textColor="@color/purple"
-                android:textSize="18sp"
-                android:padding="16dp" />
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/recycler_view_recent_books"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:scrollbars="horizontal"
-                android:paddingBottom="16dp" />
 
         </LinearLayout>
 

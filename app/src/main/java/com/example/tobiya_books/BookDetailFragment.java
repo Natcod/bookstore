@@ -127,15 +127,17 @@ public class BookDetailFragment extends Fragment {
             String fileURL = bundle.getString(ARG_FILE_URL);
             String uploadDate = bundle.getString(ARG_UPLOAD_DATE);
 
+            // Extract year from publication date
+            String[] dateParts = publicationDate.split(" ");
+            String publicationYear = dateParts[dateParts.length - 1];
             // Set data to views
             titleTextView.setText("Title : " + title);
             authorTextView.setText("Author : " + author);
             descriptionTextView.setText("Description : " + description);
-            publicationDateTextView.setText("Upload Date : " + uploadDate);
             languageTextView.setText("Language : " + language);
             priceTextView.setText("Price : " + price);
             accessTypeTextView.setText("AccessType : " + accessType);
-            publicationDateTextView.setText("Publication Date : " + publicationDate);
+            publicationDateTextView.setText("Publication Year : " + publicationYear);
 
             Glide.with(requireContext())
                     .load(coverImageUrl)
