@@ -9,6 +9,7 @@ import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,6 +25,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SearchView;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
@@ -61,6 +63,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private BooksAdapter booksAdapter;
     private SharedPreferences sharedPreferences;
     private FirebaseFirestore db;
+    private SearchView searchView;
 
     private Dialog dialog;
     private static final String TAG = "MainActivity";
@@ -73,6 +76,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        if (savedInstanceState == null) {
+            // Load the SignupTabFragment when the activity starts
+            FragmentManager fragmentManager = getSupportFragmentManager();
+            FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+            fragmentTransaction.replace(R.id.fragment_container, new SignupTabFragment());
+            fragmentTransaction.commit();
+        }
 
         fab = findViewById(R.id.fab);
         toolbar = findViewById(R.id.toolbar);
@@ -158,6 +169,87 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         return true;
     }
 
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        MenuItem searchItem = menu.findItem(R.id.action_search);
+        searchView = (SearchView) searchItem.getActionView();
+
+        searchItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                searchView.setIconified(false);
+                searchView.requestFocus();
+                return true;
+            }
+        });
+
+        setupSearchView();
+
+        return true;
+    }
+
+    private void setupSearchView() {
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+
+                performSearch(query);
+                searchView.setQuery("", false);
+                searchView.clearFocus();
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                return false;
+            }
+        });
+    }
+    private void performSearch(String query) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        String formattedQuery = query.substring(0, 1).toUpperCase() + query.substring(1).toLowerCase();
+        db.collection("Ebook")
+                .whereEqualTo("title", formattedQuery)
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        List<Book> books = new ArrayList<>();
+                        for (QueryDocumentSnapshot document : task.getResult()) {
+                            books.add(document.toObject(Book.class));
+                        }
+                        if (!books.isEmpty()) {
+                            Log.d(TAG, "Books found for query: " + formattedQuery);
+                            showSearchResultsDialog(books);
+                        } else {
+                            Log.d(TAG, "No books found for query: " + formattedQuery);
+                            showNoResultsFound();
+                        }
+                    } else {
+                        Log.d(TAG, "Error getting documents: ", task.getException());
+                        showNoResultsFound();
+                    }
+                });
+    }
+
+    private Dialog searchDialog = null;
+
+    private void updateSearchResultsDialog(List<Book> results) {
+        if (searchDialog != null && searchDialog.isShowing()) {
+            setupDialogWithResults(searchDialog, results);
+        }
+    }
+    private void setupDialogWithResults(Dialog dialog, List<Book> results) {
+        RecyclerView searchResultsRecyclerView = dialog.findViewById(R.id.searchResultsRecyclerView);
+        searchResultsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        BooksAdapter searchResultsAdapter = new BooksAdapter(this, results, new BooksAdapter.OnBookClickListener() {
+            @Override
+            public void onBookClick(Book book) {
+                // Handle book click, maybe close dialog or open book details
+                dialog.dismiss();
+            }
+        });
+        searchResultsRecyclerView.setAdapter(searchResultsAdapter);
+    }
     private void showLogoutConfirmationDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setMessage("Are you sure you want to logout?");
@@ -165,7 +257,48 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         builder.setNegativeButton("No", (dialog, which) -> dialog.dismiss());
         builder.show();
     }
+    private void showNoResultsFound() {
+        Toast.makeText(this, "No results found", Toast.LENGTH_SHORT).show();
+    }
+    private void showSearchResultsDialog(List<Book> results) {
+        Dialog searchDialog = new Dialog(this);
+        searchDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        searchDialog.setContentView(R.layout.dialog_search_results);
 
+        RecyclerView searchResultsRecyclerView = searchDialog.findViewById(R.id.searchResultsRecyclerView);
+        searchResultsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        BooksAdapter searchResultsAdapter = new BooksAdapter(this, results, new BooksAdapter.OnBookClickListener() {
+            @Override
+            public void onBookClick(Book book) {
+                BookDetailFragment fragment = BookDetailFragment.newInstance(
+                        book.getTitle(),
+                        book.getAuthor(),
+                        book.getDescription(),
+                        book.getPublicationDate().toDate().toString(),
+                        book.getCoverImage(),
+                        book.getLanguage(),
+                        book.getPrice(),
+                        book.getAccessType(),
+                        book.getFileURL(),
+                        book.getUploadDate().toDate().toString()
+                );
+
+                // Replace the current fragment with BookDetailFragment
+                FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+                transaction.replace(R.id.fragment_container, fragment);
+                transaction.addToBackStack(null); // Optional: Add fragment to back stack
+                transaction.commit();
+                searchDialog.dismiss();
+            }
+        });
+        searchResultsRecyclerView.setAdapter(searchResultsAdapter);
+
+        searchDialog.show();
+        searchDialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        searchDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        searchDialog.getWindow().getAttributes().windowAnimations = R.style.DialogAnimation;
+        searchDialog.getWindow().setGravity(Gravity.CENTER);
+    }
     private void logout() {
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putBoolean("LoggedIn", false);

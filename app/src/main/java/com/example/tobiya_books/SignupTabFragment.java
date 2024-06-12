@@ -1,5 +1,6 @@
 package com.example.tobiya_books;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -157,10 +158,8 @@ public class SignupTabFragment extends Fragment {
     }
 
     private void redirectToLogin() {
-        FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
-        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-        fragmentTransaction.replace(R.id.fragment_container, new LoginTabFragment()); // Replace fragment_container with your container id
-        fragmentTransaction.addToBackStack(null);
-        fragmentTransaction.commit();
+        Intent intent = new Intent(getActivity(), MainActivity2.class);
+        startActivity(intent);
+        getActivity().finish(); // Call finish() if you want to close the current activity
     }
 }
