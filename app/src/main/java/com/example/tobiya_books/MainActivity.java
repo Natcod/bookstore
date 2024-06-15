@@ -103,6 +103,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         // Find the TextViews in the header
         TextView firstNameTextView = headerView.findViewById(R.id.firstName);
         TextView usernameTextView = headerView.findViewById(R.id.username);
+        TextView initialTextView = headerView.findViewById(R.id.initial);
 
         // Get firstName and username from SharedPreferences
         sharedPreferences = getSharedPreferences("AppPrefs", MODE_PRIVATE);
@@ -112,6 +113,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         // Set firstName and username in the header
         firstNameTextView.setText(firstName);
         usernameTextView.setText("@" + username);
+        if (!firstName.isEmpty()) {
+            initialTextView.setText(String.valueOf(firstName.charAt(0)).toUpperCase());
+        }
 
         bottomNavigationView = findViewById(R.id.bottom_navigation);
         bottomNavigationView.setBackground(null);
