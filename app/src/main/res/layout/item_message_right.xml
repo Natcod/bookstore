@@ -22,11 +22,12 @@
             android:padding="8dp">
 
             <TextView
-                android:id="@+id/sender_text_view"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Sender"
-                android:textColor="@android:color/black"
+                android:id="@+id/initial_text_view"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:gravity="center"
+                android:background="@drawable/circular_background"
+                android:textColor="@android:color/white"
                 android:textStyle="bold" />
 
             <TextView

@@ -55,16 +55,17 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageV
         if (senderRef != null) {
             senderRef.get().addOnSuccessListener(documentSnapshot -> {
                 if (documentSnapshot.exists()) {
-                    String senderUsername = documentSnapshot.getString("username");
-                    holder.senderTextView.setText(senderUsername);
+                    String senderName = documentSnapshot.getString("username");
+                    String initial = (senderName != null && !senderName.isEmpty()) ? senderName.substring(0, 1) : "?";
+                    holder.initialTextView.setText(initial);
                 } else {
-                    holder.senderTextView.setText("Unknown sender");
+                    holder.initialTextView.setText("?");
                 }
             }).addOnFailureListener(e -> {
-                holder.senderTextView.setText("Error retrieving sender");
+                holder.initialTextView.setText("?");
             });
         } else {
-            holder.senderTextView.setText("Unknown sender");
+            holder.initialTextView.setText("?");
         }
     }
 
@@ -84,13 +85,13 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageV
     public static class MessageViewHolder extends RecyclerView.ViewHolder {
         TextView messageTextView;
         TextView sentDateTimeTextView;
-        TextView senderTextView;
+        TextView initialTextView;
 
         public MessageViewHolder(@NonNull View itemView) {
             super(itemView);
             messageTextView = itemView.findViewById(R.id.message_text_view);
             sentDateTimeTextView = itemView.findViewById(R.id.sent_date_time_text_view);
-            senderTextView = itemView.findViewById(R.id.sender_text_view);
+            initialTextView = itemView.findViewById(R.id.initial_text_view);
         }
     }
 }
