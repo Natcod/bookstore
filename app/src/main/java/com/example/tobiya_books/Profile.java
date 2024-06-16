@@ -6,24 +6,28 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
-import com.bumptech.glide.Glide;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class Profile extends Fragment {
 
-    private EditText editTextName, editTextUsername, editTextEmail, editTextBio;
-    private ImageView imageViewProfilePhoto;
+    private EditText editTextFirstName, editTextLastName, editTextUsername, editTextEmail;
+    private TextView textViewInitial;
+    private Button buttonSave;
 
     private FirebaseFirestore db;
 
@@ -54,11 +58,12 @@ public class Profile extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        editTextName = view.findViewById(R.id.editTextname);
+        editTextFirstName = view.findViewById(R.id.editTextname);
+        editTextLastName = view.findViewById(R.id.editTextLastName);
         editTextUsername = view.findViewById(R.id.editTextUsername);
         editTextEmail = view.findViewById(R.id.editTextEmail);
-        editTextBio = view.findViewById(R.id.editTextemail);
-        imageViewProfilePhoto = view.findViewById(R.id.imageViewProfilePhoto);
+        textViewInitial = view.findViewById(R.id.textViewInitial);
+        buttonSave = view.findViewById(R.id.buttonSave);
 
         SharedPreferences sharedPreferences = getActivity().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
         String currentUserId = sharedPreferences.getString("UserID", null);
@@ -67,6 +72,20 @@ public class Profile extends Fragment {
         } else {
             Toast.makeText(getActivity(), "User not logged in", Toast.LENGTH_SHORT).show();
         }
+
+        buttonSave.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String firstName = editTextFirstName.getText().toString();
+                String lastName = editTextLastName.getText().toString();
+                String username = editTextUsername.getText().toString();
+                String email = editTextEmail.getText().toString();
+
+                if (currentUserId != null) {
+                    updateUserProfile(currentUserId, firstName, lastName, username, email);
+                }
+            }
+        });
     }
 
     private void fetchUserProfile(String userId) {
@@ -76,30 +95,28 @@ public class Profile extends Fragment {
                 if (task.isSuccessful()) {
                     DocumentSnapshot document = task.getResult();
                     if (document != null && document.exists()) {
-                        String name = document.getString("firstName");
+                        String firstName = document.getString("firstName");
+                        String lastName = document.getString("lastName");
                         String username = document.getString("username");
                         String email = document.getString("email");
-                        String bio = document.getString("bio");
-                        String profilePhotoUrl = document.getString("profilePhotoUrl");
 
-                        editTextName.setText(name);
+                        editTextFirstName.setText(firstName);
+                        editTextLastName.setText(lastName);
                         editTextUsername.setText(username);
                         editTextEmail.setText(email);
-                        editTextBio.setText(bio);
 
-                        if (profilePhotoUrl != null && !profilePhotoUrl.isEmpty()) {
-                            Glide.with(Profile.this)
-                                    .load(profilePhotoUrl)
-                                    .placeholder(R.drawable.baseline_account_circle_24)
-                                    .error(R.drawable.baseline_account_circle_24)
-                                    .into(imageViewProfilePhoto);
+                        // Set initial of the first name
+                        if (firstName != null && !firstName.isEmpty()) {
+                            textViewInitial.setText(String.valueOf(firstName.charAt(0)).toUpperCase());
                         }
 
-                        // Store the username in SharedPreferences
+                        // Store the details in SharedPreferences
                         SharedPreferences sharedPreferences = getActivity().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
                         SharedPreferences.Editor editor = sharedPreferences.edit();
                         editor.putString("Username", username);
-                        editor.putString("FirstName", name);
+                        editor.putString("FirstName", firstName);
+                        editor.putString("LastName", lastName);
+                        editor.putString("Email", email);
                         editor.apply();
                     } else {
                         Toast.makeText(getActivity(), "User profile not found", Toast.LENGTH_SHORT).show();
@@ -110,4 +127,24 @@ public class Profile extends Fragment {
             }
         });
     }
+
+    private void updateUserProfile(String userId, String firstName, String lastName, String username, String email) {
+        Map<String, Object> user = new HashMap<>();
+        user.put("firstName", firstName);
+        user.put("lastName", lastName);
+        user.put("username", username);
+        user.put("email", email);
+
+        db.collection("Reader").document(userId).update(user).addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                if (task.isSuccessful()) {
+                    Toast.makeText(getActivity(), "Profile updated successfully", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(getActivity(), "Failed to update profile", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+    }
 }
+
