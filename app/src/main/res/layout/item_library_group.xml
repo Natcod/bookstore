@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <androidx.cardview.widget.CardView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -9,92 +10,104 @@
     app:cardElevation="4dp"
     app:cardBackgroundColor="@color/white">
 
-<LinearLayout
-android:layout_width="match_parent"
-android:layout_height="wrap_content"
-android:orientation="horizontal"
-android:gravity="center_vertical"
-android:layout_marginTop="1dp"
-android:background="@color/white">
-
-<ImageView
-    android:id="@+id/book_cover"
-    android:layout_width="70dp"
-    android:layout_height="70dp"
-    android:scaleType="centerCrop"
-    android:src="@drawable/logot" />
-
-<LinearLayout
-    android:layout_width="0dp"
-android:layout_height="wrap_content"
-android:layout_weight="1"
-android:layout_marginStart="16dp"
-android:background="@color/white"
-android:orientation="horizontal">
-
-<LinearLayout
-    android:layout_width="124dp"
-    android:layout_height="wrap_content"
-    android:background="@color/white"
-    android:orientation="vertical">
-
-    <TextView
-        android:id="@+id/book_title"
-        android:layout_width="wrap_content"
+    <RelativeLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Book Title"
-        android:textColor="@color/purple"
-        android:textSize="18sp"
-        android:textStyle="bold" />
+        android:background="@color/white">
 
-    <TextView
-        android:id="@+id/book_author"
-        android:layout_width="109dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:text="Author Name"
-        android:textColor="@color/purple"
-        android:textSize="16sp" />
+        <Button
+            android:id="@+id/remove_button"
+            android:layout_width="25dp"
+            android:layout_height="25dp"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginEnd="8dp"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/delete"
+            android:visibility="gone"
+          />
 
-    <TextView
-        android:id="@+id/book_access_type"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:text="Access Type"
-        android:textColor="@color/purple"
-        android:textSize="14sp" />
-</LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="1dp"
+            android:background="@color/white"
+            android:layout_below="@id/remove_button">
 
-<!-- ProgressBar -->
-<Button
-    android:id="@+id/open_button"
-    android:layout_width="50dp"
-    android:layout_height="wrap_content"
-    android:layout_marginStart="10dp"
-    android:layout_marginTop="8dp"
-    android:background="@drawable/round_button_background"
-    android:text="Open" />
+            <ImageView
+                android:id="@+id/book_cover"
+                android:layout_width="70dp"
+                android:layout_height="70dp"
+                android:scaleType="centerCrop"
+                android:src="@drawable/logot" />
 
-<Button
-    android:id="@+id/remove_button"
-    android:layout_width="50dp"
-    android:layout_height="wrap_content"
-    android:textSize="10dp"
-    android:layout_marginStart="16dp"
-    android:layout_marginTop="8dp"
-    android:layout_marginEnd="8dp"
-    android:background="@drawable/rounded_button_background"
-    android:text="Remove"
-    android:textColor="@color/white" />
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="16dp"
+                android:background="@color/white"
+                android:orientation="horizontal">
 
-<ProgressBar
-    android:id="@+id/progress_bar"
-    style="?android:attr/progressBarStyleSmall"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:layout_gravity="center"
-    android:visibility="gone" />
-</LinearLayout>
-    </LinearLayout>
-    </androidx.cardview.widget.CardView>
+                <LinearLayout
+                    android:layout_width="124dp"
+                    android:layout_height="wrap_content"
+                    android:background="@color/white"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/book_title"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Book Title"
+                        android:textColor="@color/purple"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/book_author"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="Author Name"
+                        android:textColor="@color/purple"
+                        android:textSize="16sp" />
+
+                    <TextView
+                        android:id="@+id/book_access_type"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="Access Type"
+                        android:textColor="@color/purple"
+                        android:textSize="14sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <Button
+                        android:id="@+id/open_button"
+                        android:layout_width="50dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
+                        android:layout_marginTop="8dp"
+                        android:background="@drawable/round_button_background"
+                        android:text="Open" />
+
+                    <ProgressBar
+                        android:id="@+id/progress_bar"
+                        style="?android:attr/progressBarStyleSmall"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:visibility="gone" />
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+    </RelativeLayout>
+</androidx.cardview.widget.CardView>

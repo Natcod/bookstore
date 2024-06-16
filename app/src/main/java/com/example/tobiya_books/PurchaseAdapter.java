@@ -1,6 +1,5 @@
 package com.example.tobiya_books;
 
-
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -23,6 +22,7 @@ public class PurchaseAdapter extends RecyclerView.Adapter<PurchaseAdapter.ViewHo
 
     private Context context;
     private List<Book> books;
+    private int selectedItemPosition = RecyclerView.NO_POSITION; // Track selected item position
     private OnRemoveClickListener removeClickListener;
 
     public PurchaseAdapter(Context context, List<Book> books, OnRemoveClickListener removeClickListener) {
@@ -50,6 +50,27 @@ public class PurchaseAdapter extends RecyclerView.Adapter<PurchaseAdapter.ViewHo
                 .placeholder(R.drawable.logot)
                 .error(R.drawable.logot)
                 .into(holder.bookCover);
+
+        // Toggle remove button visibility based on selected item
+        if (holder.getBindingAdapterPosition() == RecyclerView.NO_POSITION) {
+            holder.removeButton.setVisibility(View.GONE);
+        } else {
+            holder.removeButton.setVisibility(holder.getBindingAdapterPosition() == selectedItemPosition ? View.VISIBLE : View.GONE);
+        }
+
+        // Handle card click to toggle remove button visibility
+        holder.itemView.setOnClickListener(view -> {
+            int clickedPosition = holder.getBindingAdapterPosition();
+            if (clickedPosition == RecyclerView.NO_POSITION) {
+                return; // Invalid position
+            }
+
+            if (holder.removeButton.getVisibility() == View.VISIBLE) {
+                holder.removeButton.setVisibility(View.GONE);
+            } else {
+                holder.removeButton.setVisibility(View.VISIBLE);
+            }
+        });
 
         holder.openButton.setOnClickListener(view -> {
             String pdfUrl = book.getFileURL();
@@ -88,8 +109,9 @@ public class PurchaseAdapter extends RecyclerView.Adapter<PurchaseAdapter.ViewHo
         });
 
         holder.removeButton.setOnClickListener(view -> {
-            if (removeClickListener != null) {
-                removeClickListener.onRemoveClick(position);
+            int clickedPosition = holder.getBindingAdapterPosition();
+            if (removeClickListener != null && clickedPosition != RecyclerView.NO_POSITION) {
+                removeClickListener.onRemoveClick(clickedPosition);
             }
         });
     }

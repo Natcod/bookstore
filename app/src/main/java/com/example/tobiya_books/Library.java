@@ -97,7 +97,6 @@ public class Library extends Fragment implements PurchaseAdapter.OnRemoveClickLi
                 });
     }
 
-
     private void fetchBookDetails(DocumentReference ebookRef, String documentId) {
         ebookRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
