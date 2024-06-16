@@ -1,13 +1,16 @@
 package com.example.tobiya_books;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -15,10 +18,15 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.bumptech.glide.Glide;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.SetOptions;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -26,12 +34,18 @@ import java.util.Map;
 public class Profile extends Fragment {
 
     private EditText editTextFirstName, editTextLastName, editTextUsername, editTextEmail;
+    private ImageView imageViewProfilePhoto;
     private TextView textViewInitial;
-    private Button buttonSave;
+    private Button buttonSave, buttonSetProfilePhoto;
 
     private FirebaseFirestore db;
+    private FirebaseStorage storage;
+    private StorageReference storageRef;
 
     private static final String KEY_LOGGED_IN = "LoggedIn";
+    private static final String USER_COLLECTION = "Reader";
+
+    private Uri profileImageUri = null;
 
     public Profile() {
         // Required empty public constructor
@@ -45,6 +59,8 @@ public class Profile extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         db = FirebaseFirestore.getInstance();
+        storage = FirebaseStorage.getInstance();
+        storageRef = storage.getReference().child("profilePicture");
     }
 
     @Override
@@ -62,8 +78,10 @@ public class Profile extends Fragment {
         editTextLastName = view.findViewById(R.id.editTextLastName);
         editTextUsername = view.findViewById(R.id.editTextUsername);
         editTextEmail = view.findViewById(R.id.editTextEmail);
+        imageViewProfilePhoto = view.findViewById(R.id.imageViewProfilePhoto);
         textViewInitial = view.findViewById(R.id.textViewInitial);
         buttonSave = view.findViewById(R.id.buttonSave);
+        buttonSetProfilePhoto = view.findViewById(R.id.buttonSetProfilePhoto);
 
         SharedPreferences sharedPreferences = getActivity().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
         String currentUserId = sharedPreferences.getString("UserID", null);
@@ -73,23 +91,34 @@ public class Profile extends Fragment {
             Toast.makeText(getActivity(), "User not logged in", Toast.LENGTH_SHORT).show();
         }
 
+        buttonSetProfilePhoto.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                chooseImage();
+            }
+        });
+
         buttonSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String firstName = editTextFirstName.getText().toString();
-                String lastName = editTextLastName.getText().toString();
-                String username = editTextUsername.getText().toString();
-                String email = editTextEmail.getText().toString();
+                String firstName = editTextFirstName.getText().toString().trim();
+                String lastName = editTextLastName.getText().toString().trim();
+                String username = editTextUsername.getText().toString().trim();
+                String email = editTextEmail.getText().toString().trim();
 
                 if (currentUserId != null) {
-                    updateUserProfile(currentUserId, firstName, lastName, username, email);
+                    if (profileImageUri != null) {
+                        uploadImage(currentUserId, firstName, lastName, username, email);
+                    } else {
+                        updateUserProfile(currentUserId, firstName, lastName, username, email, null);
+                    }
                 }
             }
         });
     }
 
     private void fetchUserProfile(String userId) {
-        db.collection("Reader").document(userId).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+        db.collection(USER_COLLECTION).document(userId).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                 if (task.isSuccessful()) {
@@ -99,25 +128,24 @@ public class Profile extends Fragment {
                         String lastName = document.getString("lastName");
                         String username = document.getString("username");
                         String email = document.getString("email");
+                        String profilePhotoUrl = document.getString("profilePhotoUrl");
 
                         editTextFirstName.setText(firstName);
                         editTextLastName.setText(lastName);
                         editTextUsername.setText(username);
                         editTextEmail.setText(email);
 
-                        // Set initial of the first name
-                        if (firstName != null && !firstName.isEmpty()) {
-                            textViewInitial.setText(String.valueOf(firstName.charAt(0)).toUpperCase());
+                        if (profilePhotoUrl != null && !profilePhotoUrl.isEmpty()) {
+                            Glide.with(Profile.this)
+                                    .load(profilePhotoUrl)
+                                    .placeholder(R.drawable.baseline_person_24)
+                                    .error(R.drawable.baseline_person_24)
+                                    .circleCrop()
+                                    .into(imageViewProfilePhoto);
+                            textViewInitial.setVisibility(View.GONE);
+                        } else {
+                            showInitials(firstName, lastName);
                         }
-
-                        // Store the details in SharedPreferences
-                        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
-                        SharedPreferences.Editor editor = sharedPreferences.edit();
-                        editor.putString("Username", username);
-                        editor.putString("FirstName", firstName);
-                        editor.putString("LastName", lastName);
-                        editor.putString("Email", email);
-                        editor.apply();
                     } else {
                         Toast.makeText(getActivity(), "User profile not found", Toast.LENGTH_SHORT).show();
                     }
@@ -128,14 +156,80 @@ public class Profile extends Fragment {
         });
     }
 
-    private void updateUserProfile(String userId, String firstName, String lastName, String username, String email) {
+    private void showInitials(String firstName, String lastName) {
+        if (firstName != null && !firstName.isEmpty() && lastName != null && !lastName.isEmpty()) {
+            String initials = String.valueOf(firstName.charAt(0)) + String.valueOf(lastName.charAt(0));
+            textViewInitial.setText(initials);
+            textViewInitial.setVisibility(View.VISIBLE);
+            imageViewProfilePhoto.setImageResource(R.drawable.baseline_person_24);
+        }
+    }
+
+    private void chooseImage() {
+        Intent intent = new Intent();
+        intent.setType("image/*");
+        intent.setAction(Intent.ACTION_GET_CONTENT);
+        startActivityForResult(Intent.createChooser(intent, "Select Profile Photo"), 1);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == 1 && resultCode == getActivity().RESULT_OK && data != null && data.getData() != null) {
+            profileImageUri = data.getData();
+            try {
+                Glide.with(requireActivity())
+                        .load(profileImageUri) // Load the profile photo URL here
+                        .placeholder(R.drawable.baseline_person_24) // Placeholder if image loading takes time
+                        .error(R.drawable.baseline_person_24) // Error placeholder if image fails to load
+                        .circleCrop() // Ensures the loaded image is circular
+                        .into(imageViewProfilePhoto);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+
+    private void uploadImage(final String userId, final String firstName, final String lastName, final String username, final String email) {
+        final StorageReference profileImageRef = storageRef.child(userId + ".jpg");
+        UploadTask uploadTask = profileImageRef.putFile(profileImageUri);
+
+        uploadTask.addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
+                if (task.isSuccessful()) {
+                    profileImageRef.getDownloadUrl().addOnCompleteListener(new OnCompleteListener<Uri>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Uri> task) {
+                            if (task.isSuccessful()) {
+                                Uri downloadUri = task.getResult();
+                                updateUserProfile(userId, firstName, lastName, username, email, downloadUri.toString());
+                            } else {
+                                Toast.makeText(getActivity(), "Failed to get download URL", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    });
+                } else {
+                    Toast.makeText(getActivity(), "Failed to upload profile photo", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+    }
+
+    private void updateUserProfile(String userId, String firstName, String lastName, String username, String email, String profilePhotoUrl) {
         Map<String, Object> user = new HashMap<>();
         user.put("firstName", firstName);
         user.put("lastName", lastName);
         user.put("username", username);
         user.put("email", email);
+        if (profilePhotoUrl != null) {
+            user.put("profilePhotoUrl", profilePhotoUrl);
+        }
 
-        db.collection("Reader").document(userId).update(user).addOnCompleteListener(new OnCompleteListener<Void>() {
+        db.collection(USER_COLLECTION).document(userId).set(user, SetOptions.merge()).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
                 if (task.isSuccessful()) {
@@ -146,5 +240,12 @@ public class Profile extends Fragment {
             }
         });
     }
-}
 
+    private void saveProfilePhotoUrlToPreferences(String profilePhotoUrl) {
+        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString("ProfilePhotoUrl", profilePhotoUrl);
+        editor.apply();
+
+    }
+}

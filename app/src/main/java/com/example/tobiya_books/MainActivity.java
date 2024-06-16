@@ -35,6 +35,7 @@ import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
@@ -77,6 +78,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        db = FirebaseFirestore.getInstance();
+
         if (savedInstanceState == null) {
             // Load the SignupTabFragment when the activity starts
             FragmentManager fragmentManager = getSupportFragmentManager();
@@ -97,25 +100,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         NavigationView navigationView = findViewById(R.id.navigation_drawer);
         navigationView.setNavigationItemSelectedListener(this);
 
-        // Get the navigation header view
-        View headerView = navigationView.getHeaderView(0);
-
-        // Find the TextViews in the header
-        TextView firstNameTextView = headerView.findViewById(R.id.firstName);
-        TextView usernameTextView = headerView.findViewById(R.id.username);
-        TextView initialTextView = headerView.findViewById(R.id.initial);
-
-        // Get firstName and username from SharedPreferences
+        // Fetch the user profile using the user ID from shared preferences
         sharedPreferences = getSharedPreferences("AppPrefs", MODE_PRIVATE);
-        String firstName = sharedPreferences.getString("FirstName", "FirstName");
-        String username = sharedPreferences.getString("Username", "Username");
-
-        // Set firstName and username in the header
-        firstNameTextView.setText(firstName);
-        usernameTextView.setText("@" + username);
-        if (!firstName.isEmpty()) {
-            initialTextView.setText(String.valueOf(firstName.charAt(0)).toUpperCase());
+        String userId = sharedPreferences.getString("UserID", null);
+        if (userId != null) {
+            fetchUserProfile(userId);
         }
+
 
         bottomNavigationView = findViewById(R.id.bottom_navigation);
         bottomNavigationView.setBackground(null);
@@ -536,4 +527,61 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         return new Timestamp(calendar.getTime());
     }
+    private void fetchUserProfile(String userId) {
+        if (db == null) {
+            Toast.makeText(this, "Firebase Firestore is not initialized", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        db.collection("Reader").document(userId).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                if (task.isSuccessful()) {
+                    DocumentSnapshot document = task.getResult();
+                    if (document != null && document.exists()) {
+                        String firstName = document.getString("firstName");
+                        String lastName = document.getString("lastName");
+                        String username = document.getString("username");
+                        String profilePhotoUrl = document.getString("profilePhotoUrl");
+
+                        TextView firstNameTextView = findViewById(R.id.firstName);
+                        TextView usernameTextView = findViewById(R.id.username);
+                        ImageView imageViewProfilePhoto = findViewById(R.id.imageViewProfilePhoto);
+                        TextView textViewInitial = findViewById(R.id.initial);
+
+                        if(firstNameTextView !=null) firstNameTextView.setText(firstName);
+                        if(usernameTextView!=null)  usernameTextView.setText("@" + username);
+
+                        if (profilePhotoUrl != null && !profilePhotoUrl.isEmpty()) {
+                            Glide.with(MainActivity.this)
+                                    .load(profilePhotoUrl)
+                                    .placeholder(R.drawable.baseline_account_circle_24)
+                                    .error(R.drawable.baseline_account_circle_24)
+                                    .circleCrop()
+                                    .into(imageViewProfilePhoto);
+                            textViewInitial.setVisibility(View.GONE);
+                        } else {
+                            showInitials(firstName, lastName, textViewInitial, imageViewProfilePhoto);
+                        }
+                    } else {
+                        Toast.makeText(MainActivity.this, "User profile not found", Toast.LENGTH_SHORT).show();
+                    }
+                } else {
+                    Toast.makeText(MainActivity.this, "Failed to fetch user profile", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+    }
+
+    private void showInitials(String firstName, String lastName, TextView textViewInitial, ImageView imageViewProfilePhoto) {
+        if (firstName != null && !firstName.isEmpty()) {
+            textViewInitial.setText(String.valueOf(firstName.charAt(0)).toUpperCase());
+        } else if (lastName != null && !lastName.isEmpty()) {
+            textViewInitial.setText(String.valueOf(lastName.charAt(0)).toUpperCase());
+        } else {
+            textViewInitial.setText("");
+        }
+        textViewInitial.setVisibility(View.VISIBLE);
+        imageViewProfilePhoto.setVisibility(View.GONE);
+    }
+
 }
