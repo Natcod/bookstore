@@ -11,19 +11,20 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="@color/var"
         android:padding="16dp">
 
         <TextView
             android:id="@+id/group_name_text_view"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="24sp"
+            android:autoSizeMaxTextSize="@dimen/material_emphasis_high_type"
+            android:background="@color/var"
             android:text="Group Name"
             android:textAllCaps="true"
-            android:autoSizeMaxTextSize="@dimen/material_emphasis_high_type"
+            android:textColor="@color/purple"
             android:textFontWeight="@integer/google_play_services_version"
-            android:background="@color/group"
-            android:textColor="@color/purple"/>
+            android:textSize="24sp" />
 
 
     </RelativeLayout>

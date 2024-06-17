@@ -574,7 +574,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private void showInitials(String firstName, String lastName, TextView textViewInitial, ImageView imageViewProfilePhoto) {
         if (firstName != null && !firstName.isEmpty()) {
-            textViewInitial.setText(String.valueOf(firstName.charAt(0)).toUpperCase());
+       if (textViewInitial != null)    textViewInitial.setText(String.valueOf(firstName.charAt(0)).toUpperCase());
         } else if (lastName != null && !lastName.isEmpty()) {
             textViewInitial.setText(String.valueOf(lastName.charAt(0)).toUpperCase());
         } else {

@@ -84,7 +84,9 @@ public class MessagesFragment extends Fragment {
 
         // Initialize RecyclerView and adapter
         messageAdapter = new MessageAdapter(messageList, userId);
-        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
+        layoutManager.setStackFromEnd(true);
+        recyclerView.setLayoutManager(layoutManager);
         recyclerView.setAdapter(messageAdapter);
 
         // Add scroll listener to load older messages on scroll up
@@ -129,18 +131,26 @@ public class MessagesFragment extends Fragment {
                         return;
                     }
 
-                    messageList.clear();
                     if (value != null) {
+                        List<Message> newMessages = new ArrayList<>();
                         for (QueryDocumentSnapshot document : value) {
                             Message message = document.toObject(Message.class);
-                            messageList.add(message);
+                            newMessages.add(message);
                             Log.d(TAG, "Message fetched: " + message.getMessage());
                         }
+
                         // Sort messages in chronological order
-                        Collections.sort(messageList, (m1, m2) -> m1.getSentDateTime().compareTo(m2.getSentDateTime()));
-                        messageAdapter.notifyDataSetChanged();
-                        // Scroll to the bottom to show the latest messages
-                        recyclerView.scrollToPosition(messageList.size() - 1);
+                        Collections.sort(newMessages, (m1, m2) -> m1.getSentDateTime().compareTo(m2.getSentDateTime()));
+
+                        // Check if the new messages list is different from the current one
+                        if (!newMessages.equals(messageList)) {
+                            messageList.clear();
+                            messageList.addAll(newMessages);
+                            messageAdapter.notifyDataSetChanged();
+
+                            // Scroll to the bottom to show the latest messages
+                            recyclerView.scrollToPosition(messageList.size() - 1);
+                        }
                     }
                 });
     }
@@ -200,11 +210,7 @@ public class MessagesFragment extends Fragment {
                 .whereEqualTo("reader", db.collection("Reader").document(userId))
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
-                    if (!queryDocumentSnapshots.isEmpty()) {
-                        isMember = true;
-                    } else {
-                        isMember = false;
-                    }
+                    isMember = !queryDocumentSnapshots.isEmpty();
                     updateUI();
                 })
                 .addOnFailureListener(e -> {

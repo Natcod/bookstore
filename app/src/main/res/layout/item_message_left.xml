@@ -23,8 +23,8 @@
 
             <ImageView
                 android:id="@+id/profile_image_view"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
                 android:visibility="gone"
                 android:scaleType="centerCrop"
                 android:layout_gravity="start"
@@ -32,8 +32,8 @@
 
             <TextView
                 android:id="@+id/initial_text_view"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
                 android:gravity="center"
                 android:background="@drawable/circular_background"
                 android:textColor="@android:color/white"

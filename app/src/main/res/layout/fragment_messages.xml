@@ -4,12 +4,13 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:padding="16dp"
     android:paddingBottom="85dp">
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
-        android:layout_height="50dp"
+        android:layout_height="45dp"
         android:background="@color/var"
         android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
 
@@ -46,7 +47,11 @@
             android:layout_height="wrap_content"
             android:text="Join"
             android:background="@drawable/rounded_corner_background"
-            android:visibility="gone" />
+            android:visibility="gone"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" />
 
     </RelativeLayout>
 
@@ -70,7 +75,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:layout_marginBottom="8dp"
+            android:layout_marginBottom="80dp"
             android:background="@android:color/white"
             android:hint="Write a message"
             android:padding="8dp" />

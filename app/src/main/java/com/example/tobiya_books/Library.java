@@ -3,10 +3,10 @@ package com.example.tobiya_books;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -32,6 +33,7 @@ public class Library extends Fragment implements PurchaseAdapter.OnRemoveClickLi
     private RecyclerView recyclerView;
     private List<Book> books;
     private PurchaseAdapter adapter;
+    private boolean initialLoad = true;
 
     public Library() {
         // Required empty public constructor
@@ -50,7 +52,12 @@ public class Library extends Fragment implements PurchaseAdapter.OnRemoveClickLi
         View view = inflater.inflate(R.layout.fragment_library, container, false);
 
         recyclerView = view.findViewById(R.id.recycler_view_books);
-        recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+
+        // Setup LinearLayoutManager with reverse layout
+        LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity());
+        layoutManager.setStackFromEnd(true);
+        layoutManager.setReverseLayout(true);
+        recyclerView.setLayoutManager(layoutManager);
 
         adapter = new PurchaseAdapter(getActivity(), books, this); // Pass 'this' as the removeClickListener
         recyclerView.setAdapter(adapter);
@@ -68,7 +75,7 @@ public class Library extends Fragment implements PurchaseAdapter.OnRemoveClickLi
         if (currentUserId != null) {
             fetchBooksForUser(currentUserId);
         } else {
-            Log.e("LibraryFragment", "Current user ID is null");
+            Timber.e("Current user ID is null");
         }
     }
 
@@ -83,45 +90,45 @@ public class Library extends Fragment implements PurchaseAdapter.OnRemoveClickLi
                     @Override
                     public void onComplete(@NonNull Task<QuerySnapshot> task) {
                         if (task.isSuccessful()) {
+                            List<Task<DocumentSnapshot>> tasks = new ArrayList<>();
                             for (QueryDocumentSnapshot document : task.getResult()) {
                                 DocumentReference ebookRef = (DocumentReference) document.get("ebook");
                                 if (ebookRef != null) {
-                                    String documentId = document.getId(); // Get the document ID
-                                    fetchBookDetails(ebookRef, documentId); // Pass the document ID to fetchBookDetails
+                                    tasks.add(ebookRef.get());
                                 }
                             }
+
+                            Task<List<DocumentSnapshot>> allTasks = Tasks.whenAllSuccess(tasks);
+                            allTasks.addOnCompleteListener(new OnCompleteListener<List<DocumentSnapshot>>() {
+                                @Override
+                                public void onComplete(@NonNull Task<List<DocumentSnapshot>> task) {
+                                    if (task.isSuccessful()) {
+                                        for (DocumentSnapshot document : task.getResult()) {
+                                            Book book = document.toObject(Book.class);
+                                            if (book != null) {
+                                                book.setDocumentReferencePath(document.getId());
+                                                books.add(book);
+                                                Timber.d("Book fetched: %s", book.getTitle());
+                                            }
+                                        }
+                                        adapter.notifyDataSetChanged();
+                                        if (initialLoad) {
+                                            recyclerView.post(() -> recyclerView.scrollToPosition(books.size() - 1));
+                                            initialLoad = false;
+                                        }
+                                    } else {
+                                        Timber.e("Error getting book details: %s", task.getException());
+                                    }
+                                }
+                            });
+
                         } else {
-                            Log.w("LibraryFragment", "Error getting documents: ", task.getException());
+                            Timber.e("Error getting documents: %s", task.getException());
                         }
                     }
                 });
     }
 
-    private void fetchBookDetails(DocumentReference ebookRef, String documentId) {
-        ebookRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                if (task.isSuccessful()) {
-                    DocumentSnapshot document = task.getResult();
-                    if (document != null && document.exists()) {
-                        Book book = document.toObject(Book.class);
-                        if (book != null) {
-                            book.setDocumentReferencePath(documentId); // Set the document ID to the Book object
-                            books.add(book);
-                            Timber.tag("LibraryFragment").d("Book fetched: " + book.getTitle());
-                            adapter.notifyDataSetChanged();
-                        }
-                    } else {
-                        Log.w("LibraryFragment", "No such document");
-                    }
-                } else {
-                    Log.w("LibraryFragment", "Error getting book details: ", task.getException());
-                }
-            }
-        });
-    }
-
-    // Method to remove a book from the database
     private void removeBookFromDatabase(String documentId) {
         db.collection("Purchase").document(documentId)
                 .delete()
@@ -129,20 +136,21 @@ public class Library extends Fragment implements PurchaseAdapter.OnRemoveClickLi
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
                         if (task.isSuccessful()) {
-                            Log.d("LibraryFragment", "Book deleted successfully");
+                            Timber.d("Book deleted successfully");
                             int position = findBookPositionById(documentId);
                             if (position != -1) {
                                 books.remove(position);
                                 adapter.notifyItemRemoved(position);
+                                recyclerView.post(() -> recyclerView.scrollToPosition(books.size() - 1));
                             }
                         } else {
-                            Log.w("LibraryFragment", "Error deleting book", task.getException());
+                            Timber.e("Error deleting book: %s", task.getException());
+                            Toast.makeText(getActivity(), "Error deleting book", Toast.LENGTH_SHORT).show();
                         }
                     }
                 });
     }
 
-    // Method to find the position of the book in the list based on its document ID
     private int findBookPositionById(String documentId) {
         for (int i = 0; i < books.size(); i++) {
             Book book = books.get(i);
@@ -150,15 +158,12 @@ public class Library extends Fragment implements PurchaseAdapter.OnRemoveClickLi
                 return i;
             }
         }
-        return -1; // Book not found
+        return -1;
     }
 
-    // Method to handle remove button click in the adapter
     @Override
     public void onRemoveClick(int position) {
-        // Get the document ID of the book to remove
         String documentId = books.get(position).getDocumentReferencePath();
-        // Call the method to remove the book from the database
         removeBookFromDatabase(documentId);
     }
 }
