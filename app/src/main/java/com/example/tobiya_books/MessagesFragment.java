@@ -250,13 +250,14 @@ public class MessagesFragment extends Fragment {
     }
 
     private void showDeleteConfirmationDialog() {
-        new AlertDialog.Builder(getContext())
-                .setTitle("Remove from Group")
-                .setMessage("Are you sure you want to remove yourself from this group?")
-                .setPositiveButton("Yes", (dialog, which) -> removeUserFromGroup())
-                .setNegativeButton("No", null)
-                .show();
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext(), R.style.AlertDialogCustomStyle);
+        builder.setTitle("Remove from Group");
+        builder.setMessage("Are you sure you want to remove yourself from this group?");
+        builder.setPositiveButton("Yes", (dialog, which) -> removeUserFromGroup());
+        builder.setNegativeButton("No", null);
+        builder.show();
     }
+
 
     private void removeUserFromGroup() {
         db.collection("BookClubMember")

@@ -299,7 +299,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         finish();
     }
     private void showLogoutConfirmationDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        AlertDialog.Builder builder = new AlertDialog.Builder(this,R.style.AlertDialogCustomStyle);
         builder.setMessage("Are you sure you want to logout?");
         builder.setPositiveButton("Yes", (dialog, which) -> logout());
         builder.setNegativeButton("No", (dialog, which) -> dialog.dismiss());

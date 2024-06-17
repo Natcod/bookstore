@@ -1,10 +1,13 @@
 package com.example.tobiya_books;
 
 import android.content.Context;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -22,14 +25,22 @@ public class DownloadUtil {
         new Thread(new Runnable() {
             @Override
             public void run() {
+                HttpURLConnection connection = null;
+                InputStream inputStream = null;
+                FileOutputStream outputStream = null;
+
                 try {
                     URL url = new URL(pdfUrl);
-                    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                    connection = (HttpURLConnection) url.openConnection();
                     connection.connect();
 
-                    InputStream inputStream = connection.getInputStream();
-                    File file = new File(context.getFilesDir(), fileName); // Save to internal storage
-                    FileOutputStream outputStream = new FileOutputStream(file);
+                    if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
+                        throw new IOException("HTTP error code: " + connection.getResponseCode());
+                    }
+
+                    inputStream = connection.getInputStream();
+                    File file = new File(context.getFilesDir(), fileName);
+                    outputStream = new FileOutputStream(file);
 
                     byte[] buffer = new byte[1024];
                     int len;
@@ -37,18 +48,42 @@ public class DownloadUtil {
                         outputStream.write(buffer, 0, len);
                     }
 
-                    outputStream.close();
-                    inputStream.close();
-                    connection.disconnect();
-
                     Log.d(TAG, "PDF downloaded successfully.");
 
                     // Notify that the download is complete
-                    callback.onDownloadComplete(file.getAbsolutePath());
+                    new Handler(Looper.getMainLooper()).post(new Runnable() {
+                        @Override
+                        public void run() {
+                            callback.onDownloadComplete(file.getAbsolutePath());
+                        }
+                    });
                 } catch (Exception e) {
                     Log.e(TAG, "Error downloading PDF: ", e);
                     // Notify that an error occurred during download
-                    callback.onDownloadError(e);
+                    new Handler(Looper.getMainLooper()).post(new Runnable() {
+                        @Override
+                        public void run() {
+                            callback.onDownloadError(e);
+                        }
+                    });
+                } finally {
+                    if (outputStream != null) {
+                        try {
+                            outputStream.close();
+                        } catch (IOException e) {
+                            Log.e(TAG, "Error closing outputStream: ", e);
+                        }
+                    }
+                    if (inputStream != null) {
+                        try {
+                            inputStream.close();
+                        } catch (IOException e) {
+                            Log.e(TAG, "Error closing inputStream: ", e);
+                        }
+                    }
+                    if (connection != null) {
+                        connection.disconnect();
+                    }
                 }
             }
         }).start();

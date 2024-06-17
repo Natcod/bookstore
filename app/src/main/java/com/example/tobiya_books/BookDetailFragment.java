@@ -330,7 +330,7 @@ public class BookDetailFragment extends Fragment {
         builder.setTitle("Payment Options")
                 .setMessage("Select your payment method:")
                 // Set the text color to white for the message
-                .setMessage(Html.fromHtml("<font color='#FFFFFF'>Select your payment method:</font>"))
+                .setMessage(Html.fromHtml("<font color='#0000000'>Select your payment method:</font>"))
                 // Add buttons for different payment options
                 .setPositiveButton("CBE", (dialog, which) -> {
                     addPurchaseToDatabase();
@@ -351,13 +351,13 @@ public class BookDetailFragment extends Fragment {
         Button negativeButton = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
         Button neutralButton = dialog.getButton(AlertDialog.BUTTON_NEUTRAL);
         if (positiveButton != null) {
-            positiveButton.setTextColor(getResources().getColor(android.R.color.white));
+            positiveButton.setTextColor(getResources().getColor(android.R.color.black));
         }
         if (negativeButton != null) {
-            negativeButton.setTextColor(getResources().getColor(android.R.color.white));
+            negativeButton.setTextColor(getResources().getColor(android.R.color.black));
         }
         if (neutralButton != null) {
-            neutralButton.setTextColor(getResources().getColor(android.R.color.white));
+            neutralButton.setTextColor(getResources().getColor(android.R.color.black));
         }
     }
 

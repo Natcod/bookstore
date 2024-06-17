@@ -3,10 +3,10 @@ package com.example.tobiya_books;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
@@ -15,7 +15,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
-import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -33,7 +32,7 @@ public class Library extends Fragment implements PurchaseAdapter.OnRemoveClickLi
     private RecyclerView recyclerView;
     private List<Book> books;
     private PurchaseAdapter adapter;
-    private boolean initialLoad = true;
+    private String currentUserId;
 
     public Library() {
         // Required empty public constructor
@@ -44,6 +43,7 @@ public class Library extends Fragment implements PurchaseAdapter.OnRemoveClickLi
         super.onCreate(savedInstanceState);
         db = FirebaseFirestore.getInstance();
         books = new ArrayList<>();
+        currentUserId = getCurrentUserId(); // Retrieve current user ID
     }
 
     @Override
@@ -52,83 +52,78 @@ public class Library extends Fragment implements PurchaseAdapter.OnRemoveClickLi
         View view = inflater.inflate(R.layout.fragment_library, container, false);
 
         recyclerView = view.findViewById(R.id.recycler_view_books);
-
-        // Setup LinearLayoutManager with reverse layout
-        LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity());
-        layoutManager.setStackFromEnd(true);
-        layoutManager.setReverseLayout(true);
-        recyclerView.setLayoutManager(layoutManager);
+        recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
 
         adapter = new PurchaseAdapter(getActivity(), books, this); // Pass 'this' as the removeClickListener
         recyclerView.setAdapter(adapter);
 
-        // Fetch data and display only if the user is authenticated and their ID is obtained
-        fetchAndDisplayBooks();
+        if (currentUserId != null) {
+            fetchDataAndDisplay();
+        } else {
+            // Handle the case where currentUserId is null (e.g., show an error message)
+            Log.e("LibraryFragment", "Current user ID is null");
+            // You can show an error message or redirect the user to login again
+        }
 
         return view;
     }
 
-    private void fetchAndDisplayBooks() {
-        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
-        String currentUserId = sharedPreferences.getString("UserID", null);
-
-        if (currentUserId != null) {
-            fetchBooksForUser(currentUserId);
-        } else {
-            Timber.e("Current user ID is null");
-        }
+    private String getCurrentUserId() {
+        // Retrieve current user ID from SharedPreferences
+        SharedPreferences sharedPreferences = getContext().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
+        return sharedPreferences.getString("UserID", null);
     }
 
-    private void fetchBooksForUser(String userId) {
+    private void fetchDataAndDisplay() {
         // Clear the books list to prevent duplication
         books.clear();
 
         db.collection("Purchase")
-                .whereEqualTo("reader", db.document("Reader/" + userId)) // Filter by reader field
+                .whereEqualTo("reader", db.document("Reader/" + currentUserId))
                 .get()
                 .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                     @Override
                     public void onComplete(@NonNull Task<QuerySnapshot> task) {
                         if (task.isSuccessful()) {
-                            List<Task<DocumentSnapshot>> tasks = new ArrayList<>();
                             for (QueryDocumentSnapshot document : task.getResult()) {
-                                DocumentReference ebookRef = (DocumentReference) document.get("ebook");
+                                DocumentReference ebookRef = document.getDocumentReference("ebook");
                                 if (ebookRef != null) {
-                                    tasks.add(ebookRef.get());
+                                    String documentId = document.getId(); // Get the document ID
+                                    fetchBookDetails(ebookRef, documentId); // Pass the document ID to fetchBookDetails
                                 }
                             }
-
-                            Task<List<DocumentSnapshot>> allTasks = Tasks.whenAllSuccess(tasks);
-                            allTasks.addOnCompleteListener(new OnCompleteListener<List<DocumentSnapshot>>() {
-                                @Override
-                                public void onComplete(@NonNull Task<List<DocumentSnapshot>> task) {
-                                    if (task.isSuccessful()) {
-                                        for (DocumentSnapshot document : task.getResult()) {
-                                            Book book = document.toObject(Book.class);
-                                            if (book != null) {
-                                                book.setDocumentReferencePath(document.getId());
-                                                books.add(book);
-                                                Timber.d("Book fetched: %s", book.getTitle());
-                                            }
-                                        }
-                                        adapter.notifyDataSetChanged();
-                                        if (initialLoad) {
-                                            recyclerView.post(() -> recyclerView.scrollToPosition(books.size() - 1));
-                                            initialLoad = false;
-                                        }
-                                    } else {
-                                        Timber.e("Error getting book details: %s", task.getException());
-                                    }
-                                }
-                            });
-
                         } else {
-                            Timber.e("Error getting documents: %s", task.getException());
+                            Log.w("LibraryFragment", "Error getting documents: ", task.getException());
                         }
                     }
                 });
     }
 
+    private void fetchBookDetails(DocumentReference ebookRef, String documentId) {
+        ebookRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                if (task.isSuccessful()) {
+                    DocumentSnapshot document = task.getResult();
+                    if (document != null && document.exists()) {
+                        Book book = document.toObject(Book.class);
+                        if (book != null) {
+                            book.setDocumentReferencePath(documentId); // Set the document ID to the Book object
+                            books.add(book);
+                            Timber.tag("LibraryFragment").d("Book fetched: " + book.getTitle());
+                            adapter.notifyDataSetChanged();
+                        }
+                    } else {
+                        Log.w("LibraryFragment", "No such document");
+                    }
+                } else {
+                    Log.w("LibraryFragment", "Error getting book details: ", task.getException());
+                }
+            }
+        });
+    }
+
+    // Method to remove a book from the database
     private void removeBookFromDatabase(String documentId) {
         db.collection("Purchase").document(documentId)
                 .delete()
@@ -136,21 +131,20 @@ public class Library extends Fragment implements PurchaseAdapter.OnRemoveClickLi
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
                         if (task.isSuccessful()) {
-                            Timber.d("Book deleted successfully");
+                            Log.d("LibraryFragment", "Book deleted successfully");
                             int position = findBookPositionById(documentId);
                             if (position != -1) {
                                 books.remove(position);
                                 adapter.notifyItemRemoved(position);
-                                recyclerView.post(() -> recyclerView.scrollToPosition(books.size() - 1));
                             }
                         } else {
-                            Timber.e("Error deleting book: %s", task.getException());
-                            Toast.makeText(getActivity(), "Error deleting book", Toast.LENGTH_SHORT).show();
+                            Log.w("LibraryFragment", "Error deleting book", task.getException());
                         }
                     }
                 });
     }
 
+    // Method to find the position of the book in the list based on its document ID
     private int findBookPositionById(String documentId) {
         for (int i = 0; i < books.size(); i++) {
             Book book = books.get(i);
@@ -158,12 +152,15 @@ public class Library extends Fragment implements PurchaseAdapter.OnRemoveClickLi
                 return i;
             }
         }
-        return -1;
+        return -1; // Book not found
     }
 
+    // Method to handle remove button click in the adapter
     @Override
     public void onRemoveClick(int position) {
+        // Get the document ID of the book to remove
         String documentId = books.get(position).getDocumentReferencePath();
+        // Call the method to remove the book from the database
         removeBookFromDatabase(documentId);
     }
 }

@@ -1,6 +1,5 @@
 package com.example.tobiya_books;
 
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -22,8 +21,8 @@ public class PurchaseAdapter extends RecyclerView.Adapter<PurchaseAdapter.ViewHo
 
     private Context context;
     private List<Book> books;
-    private int selectedItemPosition = RecyclerView.NO_POSITION; // Track selected item position
     private OnRemoveClickListener removeClickListener;
+    private int expandedPosition = -1;
 
     public PurchaseAdapter(Context context, List<Book> books, OnRemoveClickListener removeClickListener) {
         this.context = context;
@@ -51,25 +50,13 @@ public class PurchaseAdapter extends RecyclerView.Adapter<PurchaseAdapter.ViewHo
                 .error(R.drawable.logot)
                 .into(holder.bookCover);
 
-        // Toggle remove button visibility based on selected item
-        if (holder.getBindingAdapterPosition() == RecyclerView.NO_POSITION) {
-            holder.removeButton.setVisibility(View.GONE);
-        } else {
-            holder.removeButton.setVisibility(holder.getBindingAdapterPosition() == selectedItemPosition ? View.VISIBLE : View.GONE);
-        }
+        // Set visibility of remove button based on expanded state
+        holder.removeButton.setVisibility(position == expandedPosition ? View.VISIBLE : View.GONE);
 
-        // Handle card click to toggle remove button visibility
+        // Handle card view click to toggle remove button visibility
         holder.itemView.setOnClickListener(view -> {
-            int clickedPosition = holder.getBindingAdapterPosition();
-            if (clickedPosition == RecyclerView.NO_POSITION) {
-                return; // Invalid position
-            }
-
-            if (holder.removeButton.getVisibility() == View.VISIBLE) {
-                holder.removeButton.setVisibility(View.GONE);
-            } else {
-                holder.removeButton.setVisibility(View.VISIBLE);
-            }
+            expandedPosition = expandedPosition == position ? -1 : position;
+            notifyDataSetChanged();
         });
 
         holder.openButton.setOnClickListener(view -> {
@@ -79,39 +66,29 @@ public class PurchaseAdapter extends RecyclerView.Adapter<PurchaseAdapter.ViewHo
             if (DownloadUtil.isBookDownloaded(context, fileName)) {
                 openPdf(context.getFilesDir() + "/" + fileName);
             } else {
-                // Show a ProgressDialog indicating that the download has started
-                ProgressDialog progressDialog = new ProgressDialog(context);
-                progressDialog.setMessage("Downloading PDF...");
-                progressDialog.setCancelable(false);
-                progressDialog.show();
+                // Show a toast indicating that the download has started
+                Toast.makeText(context, "Downloading PDF...", Toast.LENGTH_SHORT).show();
 
                 DownloadUtil.downloadPdf(context, pdfUrl, fileName, new DownloadUtil.DownloadCallback() {
                     @Override
                     public void onDownloadComplete(String filePath) {
-                        // Dismiss the ProgressDialog and update the UI on the main thread
-                        ((FragmentActivity) context).runOnUiThread(() -> {
-                            progressDialog.dismiss();
-                            Toast.makeText(context, "Download complete. Opening PDF...", Toast.LENGTH_SHORT).show();
-                            openPdf(filePath);
-                        });
+                        // Show a toast indicating that the download is complete
+                        Toast.makeText(context, "Download complete. Opening PDF...", Toast.LENGTH_SHORT).show();
+                        // Open the PDF after download completes
+                        openPdf(filePath);
                     }
 
                     @Override
                     public void onDownloadError(Exception e) {
-                        // Dismiss the ProgressDialog and update the UI on the main thread
-                        ((FragmentActivity) context).runOnUiThread(() -> {
-                            progressDialog.dismiss();
-                            Toast.makeText(context, "Failed to download PDF: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                        });
+                        Toast.makeText(context, "Failed to download PDF: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                     }
                 });
             }
         });
 
         holder.removeButton.setOnClickListener(view -> {
-            int clickedPosition = holder.getBindingAdapterPosition();
-            if (removeClickListener != null && clickedPosition != RecyclerView.NO_POSITION) {
-                removeClickListener.onRemoveClick(clickedPosition);
+            if (removeClickListener != null) {
+                removeClickListener.onRemoveClick(position);
             }
         });
     }

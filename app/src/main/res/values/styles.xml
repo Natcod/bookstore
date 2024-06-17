@@ -4,5 +4,20 @@
     <style name="CustomLabelTextStyle">
         <item name="android:textColor">@color/purple</item>
     </style>
-   
+
+    <style name="AlertDialogCustomStyle" parent="Theme.AppCompat.Light.Dialog.Alert">
+        <!-- Customize background color -->
+        <item name="android:background">@color/var</item>
+        <!-- Customize button text color -->
+        <item name="android:textColor">@color/purple</item>
+        <!-- Customize button background color -->
+        <item name="android:buttonBarButtonStyle">@style/AlertDialogButtonStyle</item>
+    </style>
+
+    <style name="AlertDialogButtonStyle" parent="Widget.AppCompat.Button.ButtonBar.AlertDialog">
+        <!-- Customize button text color -->
+        <item name="android:textColor">@color/black</item>
+    </style>
+
+
 </resources>
