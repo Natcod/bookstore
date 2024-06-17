@@ -22,12 +22,11 @@
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_create_group"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="70dp"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
         android:layout_marginRight="20dp"
-        android:background="@drawable/button_background"
-        android:text="New"
+        android:layout_marginBottom="15dp"
+        android:background="@drawable/plus"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
 

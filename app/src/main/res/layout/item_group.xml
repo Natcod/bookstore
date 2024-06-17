@@ -8,16 +8,14 @@
     app:cardElevation="4dp"
     app:cardBackgroundColor="@color/white">
 
-    <LinearLayout
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="16dp"
-        android:background="@drawable/rounded_corner_background">
+        android:padding="16dp">
 
         <TextView
             android:id="@+id/group_name_text_view"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textSize="24sp"
             android:text="Group Name"
@@ -27,5 +25,6 @@
             android:background="@color/group"
             android:textColor="@color/purple"/>
 
-    </LinearLayout>
+
+    </RelativeLayout>
 </androidx.cardview.widget.CardView>

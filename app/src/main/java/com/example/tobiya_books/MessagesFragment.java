@@ -1,5 +1,6 @@
 package com.example.tobiya_books;
 
+import android.app.AlertDialog;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
@@ -8,6 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -37,6 +39,8 @@ public class MessagesFragment extends Fragment {
     private EditText inputMessage;
     private Button sendButton;
     private Button joinButton;
+    private ImageButton backButton;
+    private ImageButton deleteButton;
     private boolean openedFromAllGroups = false;
     private boolean isMember = false;
 
@@ -65,6 +69,8 @@ public class MessagesFragment extends Fragment {
         inputMessage = view.findViewById(R.id.input_message);
         sendButton = view.findViewById(R.id.send_button);
         joinButton = view.findViewById(R.id.join_button);
+        backButton = view.findViewById(R.id.back_button);
+        deleteButton = view.findViewById(R.id.delete_button);
 
         // Initialize Firebase Firestore
         db = FirebaseFirestore.getInstance();
@@ -102,6 +108,12 @@ public class MessagesFragment extends Fragment {
 
         // Set click listener for join button
         joinButton.setOnClickListener(v -> joinGroup());
+
+        // Set click listener for back button
+        backButton.setOnClickListener(v -> getActivity().onBackPressed());
+
+        // Set click listener for delete button
+        deleteButton.setOnClickListener(v -> showDeleteConfirmationDialog());
 
         return view;
     }
@@ -206,16 +218,19 @@ public class MessagesFragment extends Fragment {
             joinButton.setVisibility(View.GONE);
             inputMessage.setVisibility(View.VISIBLE);
             sendButton.setVisibility(View.VISIBLE);
+            deleteButton.setVisibility(View.VISIBLE);
             fetchMessages();
         } else {
             if (openedFromAllGroups) {
                 joinButton.setVisibility(View.VISIBLE);
                 inputMessage.setVisibility(View.GONE);
                 sendButton.setVisibility(View.GONE);
+                deleteButton.setVisibility(View.GONE);
             } else {
                 joinButton.setVisibility(View.GONE);
                 inputMessage.setVisibility(View.VISIBLE);
                 sendButton.setVisibility(View.VISIBLE);
+                deleteButton.setVisibility(View.GONE);
                 fetchMessages();
             }
         }
@@ -226,5 +241,38 @@ public class MessagesFragment extends Fragment {
         // For simplicity, this is a placeholder
         Log.d(TAG, "Load older messages...");
         // Here you would typically load older messages by querying Firestore with appropriate limits and offsets
+    }
+
+    private void showDeleteConfirmationDialog() {
+        new AlertDialog.Builder(getContext())
+                .setTitle("Remove from Group")
+                .setMessage("Are you sure you want to remove yourself from this group?")
+                .setPositiveButton("Yes", (dialog, which) -> removeUserFromGroup())
+                .setNegativeButton("No", null)
+                .show();
+    }
+
+    private void removeUserFromGroup() {
+        db.collection("BookClubMember")
+                .whereEqualTo("bookClub", db.collection("BookClub").document(groupId))
+                .whereEqualTo("reader", db.collection("Reader").document(userId))
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
+                        db.collection("BookClubMember").document(document.getId()).delete()
+                                .addOnSuccessListener(aVoid -> {
+                                    Toast.makeText(getContext(), "Removed from group successfully", Toast.LENGTH_SHORT).show();
+                                    getActivity().onBackPressed();  // Go back to the previous screen
+                                })
+                                .addOnFailureListener(e -> {
+                                    Log.e(TAG, "Error removing user from group", e);
+                                    Toast.makeText(getContext(), "Error removing user from group: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                });
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error fetching membership document", e);
+                    Toast.makeText(getContext(), "Error removing user from group: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
     }
 }
