@@ -91,7 +91,7 @@ public class BookListFragment extends Fragment implements BooksAdapter.OnBookCli
 
         // Check if accessType is "All"
         if ("All".equals(accessType)) {
-            collectionRef.get().addOnCompleteListener(task -> {
+            collectionRef .whereEqualTo("approvalStatus", "Approved").get().addOnCompleteListener(task -> {
                 if (task.isSuccessful() && task.getResult() != null) {
                     books.clear();
                     for (QueryDocumentSnapshot document : task.getResult()) {
@@ -107,7 +107,7 @@ public class BookListFragment extends Fragment implements BooksAdapter.OnBookCli
             });
         } else {
             // Fetch books based on access type
-            collectionRef.whereEqualTo("accessType", accessType)
+            collectionRef.whereEqualTo("accessType", accessType) .whereEqualTo("approvalStatus", "Approved")
                     .get()
                     .addOnCompleteListener(task -> {
                         if (task.isSuccessful() && task.getResult() != null) {

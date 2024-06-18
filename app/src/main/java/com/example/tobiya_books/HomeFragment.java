@@ -69,8 +69,10 @@ public class HomeFragment extends Fragment implements BooksAdapter.OnBookClickLi
     }
 
     private void fetchBooksData() {
-        // Fetch Free Books
-        db.collection("Ebook").whereEqualTo("accessType", "Free")
+        // Fetch Free Books with Approved status
+        db.collection("Ebook")
+                .whereEqualTo("accessType", "Free")
+                .whereEqualTo("approvalStatus", "Approved")
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     freeBooksList.clear();
@@ -84,8 +86,10 @@ public class HomeFragment extends Fragment implements BooksAdapter.OnBookClickLi
                 })
                 .addOnFailureListener(e -> Log.e(TAG, "Error fetching free books", e));
 
-        // Fetch Paid Books
-        db.collection("Ebook").whereEqualTo("accessType", "Paid")
+        // Fetch Paid Books with Approved status
+        db.collection("Ebook")
+                .whereEqualTo("accessType", "Paid")
+                .whereEqualTo("approvalStatus", "Approved")
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     paidBooksList.clear();
@@ -99,13 +103,15 @@ public class HomeFragment extends Fragment implements BooksAdapter.OnBookClickLi
                 })
                 .addOnFailureListener(e -> Log.e(TAG, "Error fetching paid books", e));
 
-        // Fetch Recent Books (uploaded within last 30 days)
+        // Fetch Recent Books (uploaded within last 30 days) with Approved status
         Calendar calendar = Calendar.getInstance();
         Date endDate = calendar.getTime();
         calendar.add(Calendar.DAY_OF_MONTH, -30);
         Date startDate = calendar.getTime();
 
-        db.collection("Ebook").whereGreaterThanOrEqualTo("uploadDate", startDate)
+        db.collection("Ebook")
+                .whereEqualTo("approvalStatus", "Approved")
+                .whereGreaterThanOrEqualTo("uploadDate", startDate)
                 .whereLessThanOrEqualTo("uploadDate", endDate)
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
@@ -120,6 +126,7 @@ public class HomeFragment extends Fragment implements BooksAdapter.OnBookClickLi
                 })
                 .addOnFailureListener(e -> Log.e(TAG, "Error fetching recent books", e));
     }
+
 
     @Override
     public void onBookClick(Book book) {
