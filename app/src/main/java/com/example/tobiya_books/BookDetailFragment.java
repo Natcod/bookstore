@@ -11,10 +11,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
@@ -323,14 +325,25 @@ public class BookDetailFragment extends Fragment {
     }
 
     private void openPaymentOptionDialog() {
-        // Create an AlertDialog builder
-        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
+        // Create an AlertDialog builder with the custom style
+        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext(), R.style.AlertDialogCustomStyle);
 
-        // Set the title and message for the dialog
+        // Create a container for the custom view
+        LinearLayout layout = new LinearLayout(requireContext());
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(50, 50, 50, 50); // Add padding to the container
+        layout.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.var)); // Set background color
+
+        // Create a TextView for the dialog message
+        TextView messageTextView = new TextView(requireContext());
+        messageTextView.setText("Select your payment method:");
+        messageTextView.setTextColor(ContextCompat.getColor(requireContext(), R.color.purple));
+        messageTextView.setPadding(0, 0, 0, 20); // Add some padding for better UI
+        layout.addView(messageTextView); // Add the TextView to the container
+
+        // Set the title and custom view for the dialog
         builder.setTitle("Payment Options")
-                .setMessage("Select your payment method:")
-                // Set the text color to white for the message
-                .setMessage(Html.fromHtml("<font color='#0000000'>Select your payment method:</font>"))
+                .setView(layout)
                 // Add buttons for different payment options
                 .setPositiveButton("CBE", (dialog, which) -> {
                     addPurchaseToDatabase();
@@ -346,20 +359,23 @@ public class BookDetailFragment extends Fragment {
         // Show the AlertDialog
         dialog.show();
 
-        // Customize the text color of the buttons to white
+        // Customize the text color of the buttons to use the same color from resources
+        int buttonTextColor = ContextCompat.getColor(requireContext(), R.color.black);
         Button positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
         Button negativeButton = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
         Button neutralButton = dialog.getButton(AlertDialog.BUTTON_NEUTRAL);
+
         if (positiveButton != null) {
-            positiveButton.setTextColor(getResources().getColor(android.R.color.black));
+            positiveButton.setTextColor(buttonTextColor);
         }
         if (negativeButton != null) {
-            negativeButton.setTextColor(getResources().getColor(android.R.color.black));
+            negativeButton.setTextColor(buttonTextColor);
         }
         if (neutralButton != null) {
-            neutralButton.setTextColor(getResources().getColor(android.R.color.black));
+            neutralButton.setTextColor(buttonTextColor);
         }
     }
+
 
     private void openLibraryFragment() {
 

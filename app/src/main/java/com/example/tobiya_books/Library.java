@@ -7,6 +7,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
@@ -88,15 +89,25 @@ public class Library extends Fragment implements PurchaseAdapter.OnRemoveClickLi
                             for (QueryDocumentSnapshot document : task.getResult()) {
                                 DocumentReference ebookRef = document.getDocumentReference("ebook");
                                 if (ebookRef != null) {
-                                    String documentId = document.getId(); // Get the document ID
-                                    fetchBookDetails(ebookRef, documentId); // Pass the document ID to fetchBookDetails
+                                    String documentId = document.getId();
+                                    fetchBookDetails(ebookRef, documentId);
                                 }
+                            }
+                            // Check if books list is empty
+                            if (books.isEmpty()) {
+                                showEmptyLibraryMessage();
                             }
                         } else {
                             Log.w("LibraryFragment", "Error getting documents: ", task.getException());
                         }
                     }
                 });
+    }
+
+    private void showEmptyLibraryMessage() {
+        // Assuming you have a TextView in your fragment_library.xml with id empty_library_message
+        TextView emptyLibraryMessage = getView().findViewById(R.id.empty_library_message);
+       if(emptyLibraryMessage != null) emptyLibraryMessage.setVisibility(View.VISIBLE);
     }
 
     private void fetchBookDetails(DocumentReference ebookRef, String documentId) {

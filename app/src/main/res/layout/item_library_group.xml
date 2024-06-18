@@ -93,5 +93,19 @@
                 android:textColor="@color/white"
                 android:visibility="gone" />
         </LinearLayout>
+
     </LinearLayout>
+
+
+    <TextView
+        android:id="@+id/empty_library_message"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:text="Your library is empty. Add purchases to view here."
+        android:textAppearance="?android:textAppearanceMedium"
+        android:visibility="gone"
+    />
+
+
 </androidx.cardview.widget.CardView>
