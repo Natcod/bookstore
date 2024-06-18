@@ -5,6 +5,8 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -63,7 +65,7 @@ public class MessagesFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_messages, container, false);
-
+        setHasOptionsMenu(true);
         // Initialize views
         recyclerView = view.findViewById(R.id.recycler_view_messages);
         inputMessage = view.findViewById(R.id.input_message);
@@ -119,7 +121,16 @@ public class MessagesFragment extends Fragment {
 
         return view;
     }
+    @Override
+    public void onPrepareOptionsMenu(@NonNull Menu menu) {
+        super.onPrepareOptionsMenu(menu);
+        // Hide the search menu item
+        MenuItem searchItem = menu.findItem(R.id.action_search);
+        if (searchItem != null) {
+            searchItem.setVisible(false);
+        }
 
+    }
     private void fetchMessages() {
         db.collection("Message")
                 .whereEqualTo("bookClub", db.collection("BookClub").document(groupId))

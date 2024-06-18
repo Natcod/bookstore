@@ -10,14 +10,12 @@
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@drawable/logot"
         android:label="@string/app_name"
-
-
-
         android:roundIcon="@drawable/logot"
-
         android:supportsRtl="true"
         android:theme="@style/Theme.AndroidBookstore."
         tools:targetApi="31">
+
+
         <activity android:name=".Library" android:exported="false"/>
         <activity android:name=".MainActivity" android:exported="true"/>
 <!--        <activity android:name=".HomeFragment" android:exported="true"/>-->

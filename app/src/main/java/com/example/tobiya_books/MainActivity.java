@@ -18,6 +18,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.RadioButton;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -37,6 +38,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -57,6 +59,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private DrawerLayout drawerLayout;
     private BottomNavigationView bottomNavigationView;
+    private FloatingActionButton floatingActionButton;
     private FragmentManager fragmentManager;
     private Toolbar toolbar;
     private FloatingActionButton fab;
@@ -72,6 +75,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private static final String TYPE_WEEKLY = "Weekly";
     private static final String TYPE_MONTHLY = "Monthly";
     private static final String TYPE_YEARLY = "Yearly";
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -110,7 +114,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         bottomNavigationView = findViewById(R.id.bottom_navigation);
         bottomNavigationView.setBackground(null);
-
+        floatingActionButton = findViewById(R.id.fab);
         bottomNavigationView.setOnItemSelectedListener(item -> {
             int itemId = item.getItemId();
             if (itemId == R.id.home) {
@@ -140,6 +144,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         recyclerView.setAdapter(booksAdapter);
 
         db = FirebaseFirestore.getInstance();
+
+
     }
 
     private void openFragment(Fragment fragment) {
@@ -169,6 +175,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         MenuItem searchItem = menu.findItem(R.id.action_search);
         searchView = (SearchView) searchItem.getActionView();
 
+
         searchItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
@@ -180,22 +187,47 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         setupSearchView();
 
+
         return true;
     }
+
 
     private void setupSearchView() {
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-
                 performSearch(query);
                 searchView.setQuery("", false);
                 searchView.clearFocus();
+                bottomNavigationView.setVisibility(View.VISIBLE);  // Show the bottom navigation when search is done
+                floatingActionButton.setVisibility(View.VISIBLE);  // Show the FAB when search is done
                 return false;
             }
 
             @Override
             public boolean onQueryTextChange(String newText) {
+                return false;
+            }
+        });
+
+        searchView.setOnQueryTextFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if (hasFocus) {
+                    bottomNavigationView.setVisibility(View.GONE);  // Hide the bottom navigation when search is focused
+                    floatingActionButton.setVisibility(View.GONE);  // Hide the FAB when search is focused
+                } else {
+                    bottomNavigationView.setVisibility(View.VISIBLE);  // Show the bottom navigation when search loses focus
+                    floatingActionButton.setVisibility(View.VISIBLE);  // Show the FAB when search loses focus
+                }
+            }
+        });
+
+        searchView.setOnCloseListener(new SearchView.OnCloseListener() {
+            @Override
+            public boolean onClose() {
+                bottomNavigationView.setVisibility(View.VISIBLE);  // Show the bottom navigation when search is closed
+                floatingActionButton.setVisibility(View.VISIBLE);  // Show the FAB when search is closed
                 return false;
             }
         });
