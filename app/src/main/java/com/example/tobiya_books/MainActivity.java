@@ -64,7 +64,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
-
+import android.Manifest;
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, BooksAdapter.OnBookClickListener, BookDetailFragment.MainActivityListener {
 
     private DrawerLayout drawerLayout;
@@ -86,11 +86,28 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private static final String TYPE_MONTHLY = "Monthly";
     private static final String TYPE_YEARLY = "Yearly";
     private static final int REQUEST_CODE_POST_NOTIFICATIONS = 1;
+    private static final int MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE = 123; // Use any unique request code
+
+    private FirestoreNotificationHelper notificationHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        notificationHelper = new FirestoreNotificationHelper(this);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE);
+
+            } else {
+                // Fetch and display notifications if permission is already granted
+                notificationHelper.fetchAndDisplayNotifications();
+            }
+        } else {
+            // Fetch and display notifications for earlier Android versions
+            notificationHelper.fetchAndDisplayNotifications();
+        }
 
 // Subscribe to FCM topic
         FirebaseMessaging.getInstance().subscribeToTopic("all")
