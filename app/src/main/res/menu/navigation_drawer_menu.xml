@@ -14,13 +14,11 @@
             android:title="Profile"
             android:textColor="@color/lightWhite"
             />
-        <item
-            android:id="@+id/nav_settings"
-            android:icon="@drawable/png_transparent_computer_icons_logo_youtube_symbol_youtube_area"
-            android:title="Settings"/>
+
         <item
             android:id="@+id/nav_share"
             android:icon="@drawable/share_icon_computer_icons_like_button_sharing_facebook_facebook"
+
             android:title="Share"/>
         <item
             android:id="@+id/nav_about"

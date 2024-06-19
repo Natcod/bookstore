@@ -1,11 +1,15 @@
 package com.example.tobiya_books;
 
 import android.app.Dialog;
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Gravity;
@@ -28,6 +32,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
@@ -43,6 +48,7 @@ import com.google.android.gms.tasks.Task;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -159,17 +165,39 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         int itemId = item.getItemId();
         if (itemId == R.id.nav_Profile) {
             openFragment(new Profile());
-        } else if (itemId == R.id.nav_settings) {
-            openFragment(new Setting());
-        } else if (itemId == R.id.nav_about) {
+        }  else if (itemId == R.id.nav_about) {
             openFragment(new Aboutus());
         } else if (itemId == R.id.nav_logout) {
             showLogoutConfirmationDialog();
+        } else if (itemId == R.id.nav_share) {
+            onShareClicked(item);
         }
         drawerLayout.closeDrawer(GravityCompat.START);
         return true;
     }
+    public void onShareClicked(MenuItem item) {
+        String url = "http://com.example.tobiya_book";
 
+        // Display the link using a Snackbar with a custom duration and background color
+        Snackbar snackbar = Snackbar.make(findViewById(android.R.id.content), url, Snackbar.LENGTH_INDEFINITE);
+        snackbar.setAction("Copy", new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Copy the link to the clipboard
+                ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+                ClipData clip = ClipData.newPlainText("URL", url);
+                clipboard.setPrimaryClip(clip);
+                snackbar.setText("Link copied to clipboard").setDuration(Snackbar.LENGTH_SHORT).show();
+            }
+        });
+
+        // Set the background color of the Snackbar
+        View snackbarView = snackbar.getView();
+        int backgroundColor = ContextCompat.getColor(this, R.color.var);
+        snackbarView.setBackgroundColor(backgroundColor);
+
+        snackbar.show();
+    }
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_main, menu);
         MenuItem searchItem = menu.findItem(R.id.action_search);
