@@ -1,6 +1,8 @@
 package com.example.tobiya_books;
 
+import android.app.AlarmManager;
 import android.app.Dialog;
+import android.app.PendingIntent;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
@@ -13,6 +15,7 @@ import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
@@ -86,8 +89,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private static final String TYPE_MONTHLY = "Monthly";
     private static final String TYPE_YEARLY = "Yearly";
     private static final int REQUEST_CODE_POST_NOTIFICATIONS = 1;
+    private static final int REQUEST_CODE_PERMISSION = 100;
     private static final int MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE = 123; // Use any unique request code
-
+    private static final int ALARM_INTERVAL = 60* 60 * 1000; //
+    private static final int REQUEST_CODE_ALARM = 101;
     private FirestoreNotificationHelper notificationHelper;
 
     @Override
@@ -108,7 +113,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             // Fetch and display notifications for earlier Android versions
             notificationHelper.fetchAndDisplayNotifications();
         }
-
+        scheduleAlarm();
 // Subscribe to FCM topic
         FirebaseMessaging.getInstance().subscribeToTopic("all")
                 .addOnCompleteListener(task -> {
@@ -188,14 +193,46 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == REQUEST_CODE_POST_NOTIFICATIONS) {
+        if (requestCode == REQUEST_CODE_PERMISSION) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                // Permission granted, you can send notifications
+                // Permission granted, proceed with scheduling the alarm
+                scheduleAlarm();
             } else {
-                // Permission denied, handle accordingly
+                // Permission denied, handle accordingly (e.g., show message or disable functionality)
             }
         }
     }
+    private void scheduleAlarm() {
+        Intent intent = new Intent(this, NotificationReceiver.class);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, REQUEST_CODE_ALARM, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+
+        AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        if (alarmManager != null) {
+            // Check if the device supports exact alarms
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                // Check if your app has permission to schedule exact alarms
+                if (alarmManager.canScheduleExactAlarms()) {
+                    alarmManager.setExactAndAllowWhileIdle(AlarmManager.ELAPSED_REALTIME_WAKEUP,
+                            SystemClock.elapsedRealtime() + ALARM_INTERVAL,
+                            pendingIntent);
+                } else {
+                    // Handle case where app doesn't have permission to schedule exact alarms
+                    // You may want to inform the user or fallback to less precise timing
+                    alarmManager.setExact(AlarmManager.ELAPSED_REALTIME_WAKEUP,
+                            SystemClock.elapsedRealtime() + ALARM_INTERVAL,
+                            pendingIntent);
+                }
+            } else {
+                // For versions below S (API 31), use setExact without checking permission
+                alarmManager.setExact(AlarmManager.ELAPSED_REALTIME_WAKEUP,
+                        SystemClock.elapsedRealtime() + ALARM_INTERVAL,
+                        pendingIntent);
+            }
+        }
+    }
+
+
+
     private void openFragment(Fragment fragment) {
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         transaction.replace(R.id.fragment_container, fragment);
