@@ -12,12 +12,16 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.material.bottomappbar.BottomAppBar;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -36,7 +40,10 @@ public class Library extends Fragment implements PurchaseAdapter.OnRemoveClickLi
     private List<Book> books;
     private PurchaseAdapter adapter;
     private String currentUserId;
-
+    private BottomNavigationView bottomNavigationView;
+    private FloatingActionButton floatingActionButton;
+    private BottomAppBar bottomAppBar;
+    private Toolbar toolbar;
     public Library() {
         // Required empty public constructor
     }
@@ -81,6 +88,36 @@ public class Library extends Fragment implements PurchaseAdapter.OnRemoveClickLi
 
         return view;
     }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        checkAndSetNavigationVisibility();
+    }
+
+    private void checkAndSetNavigationVisibility() {
+        bottomNavigationView = getActivity().findViewById(R.id.bottom_navigation);
+        floatingActionButton = getActivity().findViewById(R.id.fab);
+        bottomAppBar = getActivity().findViewById(R.id.bottomAppBar);
+        toolbar = getActivity().findViewById(R.id.toolbar);
+
+        if (bottomNavigationView != null) {
+            bottomNavigationView.setVisibility(View.VISIBLE);
+        }
+
+        if (floatingActionButton != null) {
+            floatingActionButton.setVisibility(View.VISIBLE);
+        }
+
+        if (bottomAppBar != null) {
+            bottomAppBar.setVisibility(View.VISIBLE);
+        }
+
+        if (toolbar != null) {
+            toolbar.setVisibility(View.VISIBLE);
+        }
+    }
+
 
     private String getCurrentUserId() {
         // Retrieve current user ID from SharedPreferences

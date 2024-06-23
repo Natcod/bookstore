@@ -10,92 +10,98 @@
     app:cardBackgroundColor="@color/white">
 
     <LinearLayout
-        android:layout_width="927dp"
+        android:layout_width="900dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="1dp"
-        android:background="@color/white"
-        android:gravity="center_vertical"
-        android:orientation="horizontal">
-
-        <ImageView
-            android:id="@+id/book_cover"
-            android:layout_width="70dp"
-            android:layout_height="70dp"
-            android:scaleType="centerCrop"
-            android:src="@drawable/logot" />
+        android:orientation="vertical">
 
         <LinearLayout
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_weight="1"
-            android:background="@color/white"
-            android:orientation="horizontal">
-
-            <LinearLayout
-                android:layout_width="150dp"
-                android:layout_height="wrap_content"
-                android:background="@color/white"
-                android:orientation="vertical"
-
-                >
-
-                <TextView
-                    android:id="@+id/book_title"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Book Title"
-                    android:textAllCaps="true"
-                    android:textColor="@color/purple"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/book_author"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:text="Author Name"
-                    android:textAllCaps="true"
-                    android:textColor="@color/purple"
-                    android:textSize="16sp" />
-
-                <!-- New TextView for accessType -->
-                <TextView
-                    android:id="@+id/book_access_type"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:text="Access Type"
-                    android:textAllCaps="true"
-                    android:textColor="@color/purple"
-                    android:textSize="14sp" />
-            </LinearLayout>
-
-            <Button
-                android:id="@+id/open_button"
-                android:layout_width="50dp"
-                android:layout_height="40dp"
-                android:layout_marginStart="10dp"
-                android:layout_marginTop="8dp"
-                android:background="@drawable/round_button_background"
-                android:text="Open" />
+            android:orientation="vertical"
+            android:background="@color/white">
 
             <Button
                 android:id="@+id/remove_button"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
-                android:layout_marginStart="10dp"
-                android:layout_marginTop="8dp"
-                android:layout_marginEnd="10dp"
+                android:layout_gravity="start"
                 android:background="@drawable/delete"
-
                 android:textColor="@color/white"
-                android:visibility="gone" />
+                android:visibility="gone"/>
         </LinearLayout>
 
-    </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="8dp"
+            android:background="@color/white"
+            android:gravity="center_vertical">
 
+            <ImageView
+                android:id="@+id/book_cover"
+                android:layout_width="70dp"
+                android:layout_height="70dp"
+                android:scaleType="centerCrop"
+                android:src="@drawable/logot" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_weight="1"
+                android:orientation="horizontal"
+                android:background="@color/white">
+
+                <LinearLayout
+                    android:layout_width="150dp"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:background="@color/white">
+
+                    <TextView
+                        android:id="@+id/book_title"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Book Title"
+                        android:textAllCaps="true"
+                        android:textColor="@color/purple"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/book_author"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="Author Name"
+                        android:textAllCaps="true"
+                        android:textColor="@color/purple"
+                        android:textSize="16sp" />
+
+                    <!-- New TextView for accessType -->
+                    <TextView
+                        android:id="@+id/book_access_type"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="Access Type"
+                        android:textAllCaps="true"
+                        android:textColor="@color/purple"
+                        android:textSize="14sp" />
+                </LinearLayout>
+
+                <Button
+                    android:id="@+id/open_button"
+                    android:layout_width="50dp"
+                    android:layout_height="40dp"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginTop="8dp"
+                    android:background="@drawable/round_button_background"
+                    android:text="Open" />
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
 
     <TextView
         android:id="@+id/empty_library_message"
@@ -104,8 +110,5 @@
         android:layout_gravity="center"
         android:text="Your library is empty. Add purchases to view here."
         android:textAppearance="?android:textAppearanceMedium"
-        android:visibility="gone"
-    />
-
-
+        android:visibility="gone" />
 </androidx.cardview.widget.CardView>

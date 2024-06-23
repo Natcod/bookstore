@@ -9,6 +9,7 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 
 import com.github.barteksc.pdfviewer.PDFView;
@@ -29,7 +30,7 @@ public class PdfViewerFragment extends Fragment {
     private BottomNavigationView bottomNavigationView;
     private FloatingActionButton floatingActionButton;
     private BottomAppBar bottomAppBar;
-
+    private Toolbar toolbar;
     public PdfViewerFragment() {
         // Required empty public constructor
     }
@@ -62,6 +63,7 @@ public class PdfViewerFragment extends Fragment {
         bottomNavigationView = getActivity().findViewById(R.id.bottom_navigation);
         floatingActionButton = getActivity().findViewById(R.id.fab);
         bottomAppBar = getActivity().findViewById(R.id.bottomAppBar);
+        toolbar=getActivity().findViewById(R.id.toolbar);
 
         if (bottomNavigationView != null) {
             bottomNavigationView.setVisibility(View.GONE);
@@ -71,6 +73,9 @@ public class PdfViewerFragment extends Fragment {
         }
         if (bottomAppBar != null) {
             bottomAppBar.setVisibility(View.GONE);
+        }
+        if (toolbar!= null) {
+            toolbar.setVisibility(View.GONE);
         }
 
         // Load the PDF file from the local storage

@@ -15,10 +15,14 @@ import android.widget.ImageButton;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.bottomappbar.BottomAppBar;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
@@ -29,6 +33,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import com.google.android.material.bottomappbar.BottomAppBar;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 public class MessagesFragment extends Fragment {
 
@@ -45,6 +52,10 @@ public class MessagesFragment extends Fragment {
     private ImageButton deleteButton;
     private boolean openedFromAllGroups = false;
     private boolean isMember = false;
+    private BottomNavigationView bottomNavigationView;
+    private FloatingActionButton floatingActionButton;
+    private BottomAppBar bottomAppBar;
+ private Toolbar toolbar;
 
     private static final String TAG = "MessagesFragment";
 
@@ -73,6 +84,28 @@ public class MessagesFragment extends Fragment {
         joinButton = view.findViewById(R.id.join_button);
         backButton = view.findViewById(R.id.back_button);
         deleteButton = view.findViewById(R.id.delete_button);
+
+        // Find and hide the BottomNavigationView, FloatingActionButton, and BottomAppBar
+        bottomNavigationView = getActivity().findViewById(R.id.bottom_navigation);
+        floatingActionButton = getActivity().findViewById(R.id.fab);
+        bottomAppBar = getActivity().findViewById(R.id.bottomAppBar);
+        toolbar = getActivity().findViewById(R.id.toolbar);
+
+        if (bottomNavigationView != null) {
+            bottomNavigationView.setVisibility(View.GONE);
+        }
+        if (floatingActionButton != null) {
+            floatingActionButton.setVisibility(View.GONE);
+        }
+        if (bottomAppBar != null) {
+            bottomAppBar.setVisibility(View.GONE);
+        }
+        if (toolbar != null) {
+            toolbar.setVisibility(View.GONE);
+        }
+
+
+
 
         // Initialize Firebase Firestore
         db = FirebaseFirestore.getInstance();

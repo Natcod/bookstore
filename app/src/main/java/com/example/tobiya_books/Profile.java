@@ -10,6 +10,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -19,6 +20,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.appcompat.widget.Toolbar;
 
 import com.bumptech.glide.Glide;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -29,6 +31,9 @@ import com.google.firebase.firestore.SetOptions;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.bottomappbar.BottomAppBar;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -43,6 +48,11 @@ public class Profile extends Fragment {
     private FirebaseFirestore db;
     private FirebaseStorage storage;
     private StorageReference storageRef;
+
+    private BottomNavigationView bottomNavigationView;
+    private FloatingActionButton floatingActionButton;
+    private BottomAppBar bottomAppBar;
+    private Toolbar toolbar;
 
     private static final String KEY_LOGGED_IN = "LoggedIn";
     private static final String USER_COLLECTION = "Reader";
@@ -65,6 +75,7 @@ public class Profile extends Fragment {
         storage = FirebaseStorage.getInstance();
         storageRef = storage.getReference().child("profilePicture");
     }
+
     @Override
     public void onPrepareOptionsMenu(@NonNull Menu menu) {
         super.onPrepareOptionsMenu(menu);
@@ -73,8 +84,8 @@ public class Profile extends Fragment {
         if (searchItem != null) {
             searchItem.setVisible(false);
         }
-
     }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -86,7 +97,7 @@ public class Profile extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        editTextFirstName = view.findViewById(R.id.editTextname);
+        editTextFirstName = view.findViewById(R.id.editTextFirstName);
         editTextLastName = view.findViewById(R.id.editTextLastName);
         editTextUsername = view.findViewById(R.id.editTextUsername);
         editTextEmail = view.findViewById(R.id.editTextEmail);
@@ -94,6 +105,11 @@ public class Profile extends Fragment {
         textViewInitial = view.findViewById(R.id.textViewInitial);
         buttonSave = view.findViewById(R.id.buttonSave);
         buttonSetProfilePhoto = view.findViewById(R.id.buttonSetProfilePhoto);
+
+        bottomNavigationView = getActivity().findViewById(R.id.bottom_navigation);
+        floatingActionButton = getActivity().findViewById(R.id.fab);
+        bottomAppBar = getActivity().findViewById(R.id.bottomAppBar);
+        toolbar = getActivity().findViewById(R.id.toolbar);
 
         SharedPreferences sharedPreferences = getActivity().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
         String currentUserId = sharedPreferences.getString("UserID", null);
@@ -127,6 +143,104 @@ public class Profile extends Fragment {
                 }
             }
         });
+
+        View.OnFocusChangeListener focusChangeListener = new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if (hasFocus) {
+                    hideNavigationViews();
+                } else {
+                    if (!editTextFirstName.hasFocus() && !editTextLastName.hasFocus() &&
+                            !editTextUsername.hasFocus() && !editTextEmail.hasFocus()) {
+                        showNavigationViews();
+                    }
+                }
+            }
+        };
+
+        editTextFirstName.setOnFocusChangeListener(focusChangeListener);
+        editTextLastName.setOnFocusChangeListener(focusChangeListener);
+        editTextUsername.setOnFocusChangeListener(focusChangeListener);
+        editTextEmail.setOnFocusChangeListener(focusChangeListener);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        checkAndSetNavigationVisibility();
+    }
+
+    private void checkAndSetNavigationVisibility() {
+        bottomNavigationView = getActivity().findViewById(R.id.bottom_navigation);
+        floatingActionButton = getActivity().findViewById(R.id.fab);
+        bottomAppBar = getActivity().findViewById(R.id.bottomAppBar);
+        toolbar = getActivity().findViewById(R.id.toolbar);
+
+        if (bottomNavigationView != null) {
+            bottomNavigationView.setVisibility(View.VISIBLE);
+        }
+
+        if (floatingActionButton != null) {
+            floatingActionButton.setVisibility(View.VISIBLE);
+        }
+
+        if (bottomAppBar != null) {
+            bottomAppBar.setVisibility(View.VISIBLE);
+        }
+
+        if (toolbar != null) {
+            toolbar.setVisibility(View.VISIBLE);
+        }
+
+        // Reset focus if no EditText has focus
+        if (!editTextFirstName.hasFocus() && !editTextLastName.hasFocus() &&
+                !editTextUsername.hasFocus() && !editTextEmail.hasFocus()) {
+            clearEditTextFocus();
+        }
+    }
+
+    private void clearEditTextFocus() {
+        editTextFirstName.clearFocus();
+        editTextLastName.clearFocus();
+        editTextUsername.clearFocus();
+        editTextEmail.clearFocus();
+        hideKeyboard();
+    }
+
+    private void hideNavigationViews() {
+        if (bottomNavigationView != null) {
+            bottomNavigationView.setVisibility(View.GONE);
+        }
+        if (floatingActionButton != null) {
+            floatingActionButton.setVisibility(View.GONE);
+        }
+        if (bottomAppBar != null) {
+            bottomAppBar.setVisibility(View.GONE);
+        }
+
+    }
+
+    private void showNavigationViews() {
+        if (bottomNavigationView != null) {
+            bottomNavigationView.setVisibility(View.VISIBLE);
+        }
+        if (floatingActionButton != null) {
+            floatingActionButton.setVisibility(View.VISIBLE);
+        }
+        if (bottomAppBar != null) {
+            bottomAppBar.setVisibility(View.VISIBLE);
+        }
+        if (toolbar != null) {
+            toolbar.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private void hideKeyboard() {
+        View view = getActivity().getCurrentFocus();
+        if (view != null) {
+            InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+        }
     }
 
     private void fetchUserProfile(String userId) {
@@ -204,7 +318,6 @@ public class Profile extends Fragment {
         }
     }
 
-
     private void uploadImage(final String userId, final String firstName, final String lastName, final String username, final String email) {
         final StorageReference profileImageRef = storageRef.child(userId + ".jpg");
         UploadTask uploadTask = profileImageRef.putFile(profileImageUri);
@@ -258,6 +371,6 @@ public class Profile extends Fragment {
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putString("ProfilePhotoUrl", profilePhotoUrl);
         editor.apply();
-
     }
 }
+
