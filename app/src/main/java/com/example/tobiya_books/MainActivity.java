@@ -91,7 +91,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private static final int REQUEST_CODE_POST_NOTIFICATIONS = 1;
     private static final int REQUEST_CODE_PERMISSION = 100;
     private static final int MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE = 123; // Use any unique request code
-    private static final int ALARM_INTERVAL = 60* 60 * 1000; //
+    private static final int ALARM_INTERVAL = 12 * 60 * 60 * 1000; // 12 hours in milliseconds
+
+
     private static final int REQUEST_CODE_ALARM = 101;
     private FirestoreNotificationHelper notificationHelper;
 
@@ -101,34 +103,42 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         setContentView(R.layout.activity_main);
 
         notificationHelper = new FirestoreNotificationHelper(this);
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
                 ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE);
-
             } else {
-                // Fetch and display notifications if permission is already granted
                 notificationHelper.fetchAndDisplayNotifications();
+                notificationHelper.listenForNewNotifications();
             }
         } else {
-            // Fetch and display notifications for earlier Android versions
             notificationHelper.fetchAndDisplayNotifications();
+            notificationHelper.listenForNewNotifications();
         }
+
         scheduleAlarm();
-// Subscribe to FCM topic
-        FirebaseMessaging.getInstance().subscribeToTopic("all")
-                .addOnCompleteListener(task -> {
-                    String msg = "Subscribed to notifications";
-                    if (!task.isSuccessful()) {
-                        msg = "Subscription failed";
-                    }
-                    Log.d("MainActivity", msg);
-                    Toast.makeText(MainActivity.this, msg, Toast.LENGTH_SHORT).show();
-                });
+
+        sharedPreferences = getSharedPreferences("AppPrefs", MODE_PRIVATE);
+
+        boolean isSubscribed = sharedPreferences.getBoolean("isSubscribedToNotifications", false);
+
+        if (!isSubscribed) {
+            FirebaseMessaging.getInstance().subscribeToTopic("all")
+                    .addOnCompleteListener(task -> {
+                        String msg = "Subscribed to notifications";
+                        if (!task.isSuccessful()) {
+                            msg = "Subscription failed";
+                        } else {
+                            sharedPreferences.edit().putBoolean("isSubscribedToNotifications", true).apply();
+                        }
+                        Log.d("MainActivity", msg);
+                        Toast.makeText(MainActivity.this, msg, Toast.LENGTH_SHORT).show();
+                    });
+        }
+
         db = FirebaseFirestore.getInstance();
 
-
         if (savedInstanceState == null) {
-            // Load the SignupTabFragment when the activity starts
             FragmentManager fragmentManager = getSupportFragmentManager();
             FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
             fragmentTransaction.replace(R.id.fragment_container, new SignupTabFragment());
@@ -147,13 +157,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         NavigationView navigationView = findViewById(R.id.navigation_drawer);
         navigationView.setNavigationItemSelectedListener(this);
 
-        // Fetch the user profile using the user ID from shared preferences
-        sharedPreferences = getSharedPreferences("AppPrefs", MODE_PRIVATE);
         String userId = sharedPreferences.getString("UserID", null);
         if (userId != null) {
             fetchUserProfile(userId);
         }
-
 
         bottomNavigationView = findViewById(R.id.bottom_navigation);
         bottomNavigationView.setBackground(null);
@@ -187,9 +194,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         recyclerView.setAdapter(booksAdapter);
 
         db = FirebaseFirestore.getInstance();
-
-
     }
+
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -690,7 +696,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         if(firstNameTextView !=null) firstNameTextView.setText(firstName);
                         if(usernameTextView!=null)  usernameTextView.setText("@" + username);
 
-                        if (profilePhotoUrl != null && !profilePhotoUrl.isEmpty()) {
+                        if (profilePhotoUrl != null && !profilePhotoUrl.isEmpty() && imageViewProfilePhoto !=null) {
                             Glide.with(MainActivity.this)
                                     .load(profilePhotoUrl)
                                     .placeholder(R.drawable.baseline_account_circle_24)
@@ -719,8 +725,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         } else {
             textViewInitial.setText("");
         }
-        textViewInitial.setVisibility(View.VISIBLE);
-        imageViewProfilePhoto.setVisibility(View.GONE);
+if(textViewInitial !=null)        textViewInitial.setVisibility(View.VISIBLE);
+        if(imageViewProfilePhoto !=null)         imageViewProfilePhoto.setVisibility(View.GONE);
     }
 
 }
