@@ -476,11 +476,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         searchResultsRecyclerView.setAdapter(searchResultsAdapter);
 
         searchDialog.show();
-        searchDialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        searchDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-        searchDialog.getWindow().getAttributes().windowAnimations = R.style.DialogAnimation;
-        searchDialog.getWindow().setGravity(Gravity.CENTER);
+        Window window = searchDialog.getWindow();
+        if (window != null) {
+            window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+            window.setWindowAnimations(R.style.DialogAnimation);
+            window.setGravity(Gravity.START | Gravity.TOP); // Set gravity to top left corner
+        }
     }
+
     private void logout() {
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putBoolean("LoggedIn", false);
