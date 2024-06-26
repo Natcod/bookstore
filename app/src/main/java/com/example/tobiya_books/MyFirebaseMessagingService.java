@@ -26,18 +26,19 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         if (remoteMessage.getData().size() > 0) {
             String title = remoteMessage.getData().get("title");
             String message = remoteMessage.getData().get("message");
-            sendNotification(title, message);
+            String bookId = remoteMessage.getData().get("book"); // Extract book ID
+            sendNotification(title, message, bookId);
         }
     }
 
-    private void sendNotification(String title, String message) {
-        Intent intent = new Intent(this, MainActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_IMMUTABLE);
+    private void sendNotification(String title, String message, String bookId) {
+        Intent notificationIntent = new Intent(this, MainActivity.class);
+        notificationIntent.putExtra("book_id", bookId); // Replace bookId with your actual book ID
+        notificationIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
         NotificationCompat.Builder notificationBuilder =
                 new NotificationCompat.Builder(this, CHANNEL_ID)
-                // Set your notification icon
                         .setSmallIcon(R.drawable.notification)
                         .setContentTitle(title)
                         .setContentText(message)
@@ -52,13 +53,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         }
 
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
+            // TODO: Consider calling ActivityCompat#requestPermissions
             return;
         }
 

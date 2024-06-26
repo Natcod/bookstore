@@ -29,7 +29,9 @@ import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 
 import timber.log.Timber;
 
@@ -96,9 +98,16 @@ public class BookDetailFragment extends Fragment {
         return fragment;
     }
 
+    public static BookDetailFragment newInstance(String bookId) {
+        BookDetailFragment fragment = new BookDetailFragment();
+        Bundle args = new Bundle();
+        args.putString("book_id", bookId);
+        fragment.setArguments(args);
+        return fragment;
+    }
+
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_book_detail, container, false);
 
@@ -120,45 +129,58 @@ public class BookDetailFragment extends Fragment {
         // Get data from arguments
         Bundle bundle = getArguments();
         if (bundle != null) {
-            String title = bundle.getString(ARG_TITLE);
-            String author = bundle.getString(ARG_AUTHOR);
-            String description = bundle.getString(ARG_DESCRIPTION);
-            String publicationDate = bundle.getString(ARG_PUBLICATION_DATE);
-            String coverImageUrl = bundle.getString(ARG_COVER_IMAGE_URL);
-            String language = bundle.getString(ARG_LANGUAGE);
-            double price = bundle.getDouble(ARG_PRICE);
-            String accessType = bundle.getString(ARG_ACCESS_TYPE);
-            String fileURL = bundle.getString(ARG_FILE_URL);
-            String uploadDate = bundle.getString(ARG_UPLOAD_DATE);
+            if (bundle.containsKey("book")) {
+                Book book = (Book) bundle.getSerializable("book");
+                if (book != null) {
+                    setBookDetails(book);
+                }
+            } else if (bundle.containsKey("book_id")) {
+                String bookId = bundle.getString("book_id");
+                if (bookId != null) {
+                    fetchBookDetails(bookId);
+                }
+            } else {
+                String title = bundle.getString(ARG_TITLE);
+                String author = bundle.getString(ARG_AUTHOR);
+                String description = bundle.getString(ARG_DESCRIPTION);
+                String publicationDate = bundle.getString(ARG_PUBLICATION_DATE);
+                String coverImageUrl = bundle.getString(ARG_COVER_IMAGE_URL);
+                String language = bundle.getString(ARG_LANGUAGE);
+                double price = bundle.getDouble(ARG_PRICE);
+                String accessType = bundle.getString(ARG_ACCESS_TYPE);
+                String fileURL = bundle.getString(ARG_FILE_URL);
+                String uploadDate = bundle.getString(ARG_UPLOAD_DATE);
 
-            // Extract year from publication date
-            String[] dateParts = publicationDate.split(" ");
-            String publicationYear = dateParts[dateParts.length - 1];
-            // Set data to views
-            titleTextView.setText("Title : " + title);
-            authorTextView.setText("Author : " + author);
-            descriptionTextView.setText("Description : " + description);
-            languageTextView.setText("Language : " + language);
-            priceTextView.setText("Price : " + price);
-            accessTypeTextView.setText("AccessType : " + accessType);
-            publicationDateTextView.setText("Publication Year : " + publicationYear);
+                // Extract year from publication date
+                String[] dateParts = publicationDate.split(" ");
+                String publicationYear = dateParts[dateParts.length - 1];
+                // Set data to views
+                titleTextView.setText("Title : " + title);
+                authorTextView.setText("Author : " + author);
+                descriptionTextView.setText("Description : " + description);
+                languageTextView.setText("Language : " + language);
+                priceTextView.setText("Price : " + price);
+                accessTypeTextView.setText("AccessType : " + accessType);
+                publicationDateTextView.setText("Publication Year : " + publicationYear);
 
-            Glide.with(requireContext())
-                    .load(coverImageUrl)
-                    .into(coverImageView);
+                Glide.with(requireContext())
+                        .load(coverImageUrl)
+                        .into(coverImageView);
 
-            // Retrieve document ID based on criteria
-            retrieveDocumentId(fileURL);
+                // Retrieve document ID based on criteria
+                retrieveDocumentId(fileURL);
 
-            // Set back button click listener
-            backButton.setOnClickListener(v -> {
-                // Navigate back to HomeFragment
-                getActivity().getSupportFragmentManager().popBackStack();
-            });
+                // Set back button click listener
+                backButton.setOnClickListener(v -> {
+                    // Navigate back to HomeFragment
+                    getActivity().getSupportFragmentManager().popBackStack();
+                });
+            }
         }
 
         return view;
     }
+
     @Override
     public void onPrepareOptionsMenu(@NonNull Menu menu) {
         super.onPrepareOptionsMenu(menu);
@@ -169,6 +191,65 @@ public class BookDetailFragment extends Fragment {
         }
 
     }
+
+    private void fetchBookDetails(String bookId) {
+        db.document(bookId).get().addOnSuccessListener(documentSnapshot -> {
+            if (documentSnapshot.exists()) {
+                // Assuming the book document has fields title, author, etc.
+                String title = documentSnapshot.getString("title");
+                String author = documentSnapshot.getString("author");
+                String description = documentSnapshot.getString("description");
+                String publicationDate = documentSnapshot.getString("publication_date");
+                String coverImageUrl = documentSnapshot.getString("cover_image_url");
+                String language = documentSnapshot.getString("language");
+                double price = documentSnapshot.getDouble("price");
+                String accessType = documentSnapshot.getString("access_type");
+
+                // Set data to views
+                titleTextView.setText("Title: " + title);
+                authorTextView.setText("Author: " + author);
+                descriptionTextView.setText("Description: " + description);
+                languageTextView.setText("Language: " + language);
+                priceTextView.setText("Price: " + price);
+                accessTypeTextView.setText("AccessType: " + accessType);
+                publicationDateTextView.setText("Publication Year: " + publicationDate.split(" ")[publicationDate.split(" ").length - 1]);
+
+                Glide.with(requireContext()).load(coverImageUrl).into(coverImageView);
+            }
+        });
+    }
+
+    private void setBookDetails(Book book) {
+        titleTextView.setText("Title : " + book.getTitle());
+        authorTextView.setText("Author : " + book.getAuthor());
+        descriptionTextView.setText("Description : " + book.getDescription());
+        languageTextView.setText("Language : " + book.getLanguage());
+        priceTextView.setText("Price : " + book.getPrice());
+        accessTypeTextView.setText("AccessType : " + book.getAccessType());
+
+        // Format publication date to display only the year
+        if (book.getPublicationDate() != null) {
+            Date publicationDate = book.getPublicationDate().toDate(); // Convert Timestamp to Date
+            String publicationYear = new SimpleDateFormat("yyyy", Locale.getDefault()).format(publicationDate);
+            publicationDateTextView.setText("Publication Year : " + publicationYear);
+        }
+
+
+        Glide.with(requireContext())
+                .load(book.getCoverImage())
+                .into(coverImageView);
+
+        // Retrieve document ID based on criteria
+        retrieveDocumentId(book.getFileURL());
+
+        // Set back button click listener
+        backButton.setOnClickListener(v -> {
+            // Navigate back to HomeFragment
+            getActivity().getSupportFragmentManager().popBackStack();
+        });
+    }
+
+
     private void checkIfBookInLibrary(String fileURL, String accessType) {
         // Retrieve the user ID from shared preferences
         SharedPreferences sharedPreferences = getActivity().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
@@ -387,7 +468,6 @@ public class BookDetailFragment extends Fragment {
         }
     }
 
-
     private void openLibraryFragment() {
 
         Library libraryFragment = new Library();
@@ -398,5 +478,4 @@ public class BookDetailFragment extends Fragment {
                 .addToBackStack(null)
                 .commit();
     }
-
 }

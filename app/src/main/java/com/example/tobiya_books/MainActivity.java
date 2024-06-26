@@ -57,6 +57,7 @@ import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
@@ -102,21 +103,36 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+
+        Intent intent = getIntent();
+        if (intent != null) {
+            Log.d("MainActivity", "Intent has extra 'book_id': " + intent.hasExtra("book_id"));
+            if (intent.hasExtra("book_id")) {
+                String bookId = intent.getStringExtra("book_id");
+                if (bookId != null) {
+                    openBookDetailFragment(bookId);
+                }
+            }
+        }
+
+
         notificationHelper = new FirestoreNotificationHelper(this);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
                 ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE);
             } else {
-                notificationHelper.fetchAndDisplayNotifications();
+                notificationHelper.fetchUnreadNotifications();
                 notificationHelper.listenForNewNotifications();
             }
         } else {
-            notificationHelper.fetchAndDisplayNotifications();
+            notificationHelper.fetchUnreadNotifications();
             notificationHelper.listenForNewNotifications();
         }
 
         scheduleAlarm();
+
+
 
         sharedPreferences = getSharedPreferences("AppPrefs", MODE_PRIVATE);
 
@@ -243,6 +259,38 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         transaction.replace(R.id.fragment_container, fragment);
         transaction.commit();
+    }
+    // Inside MainActivity
+    // Inside MainActivity
+    public void openBookDetailFragment(String bookId) {
+        // Fetch the Book object using the bookId
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        DocumentReference bookRef = db.document("Ebook/" + bookId);
+        bookRef.get().addOnSuccessListener(documentSnapshot -> {
+            if (documentSnapshot.exists()) {
+                Book book = documentSnapshot.toObject(Book.class);
+                if (book != null) {
+                    openBookDetailFragment(book);
+                } else {
+                    Log.e(TAG, "Book is null");
+                    // Handle null book error
+                }
+            } else {
+                Log.e(TAG, "Document does not exist");
+                // Handle document not exist error
+            }
+        }).addOnFailureListener(e -> {
+            Log.e(TAG, "Error getting book", e);
+            // Handle failure to fetch book
+        });
+    }
+
+    private void openBookDetailFragment(Book book) {
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+        fragmentTransaction.replace(R.id.fragment_container, BookDetailFragment.newInstance(book));
+        fragmentTransaction.addToBackStack(null); // Optional: Adds the transaction to the back stack
+        fragmentTransaction.commit();
     }
 
     @Override
