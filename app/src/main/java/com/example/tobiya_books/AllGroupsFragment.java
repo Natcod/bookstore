@@ -9,6 +9,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.fragment.app.Fragment;
@@ -101,8 +102,14 @@ public class AllGroupsFragment extends Fragment implements GroupAdapter.OnGroupC
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
         builder.setTitle("Create New Group");
 
+        // Inflate the custom layout for the dialog
         View viewInflated = LayoutInflater.from(getContext()).inflate(R.layout.dialog_create_group, (ViewGroup) getView(), false);
+
+        // Set EditText text color to purple
         final EditText input = viewInflated.findViewById(R.id.input_group_name);
+       
+        input.setTextColor(getResources().getColor(R.color.purple)); // Set EditText text color to purple
+        input.setHintTextColor(getResources().getColor(R.color.purple)); // Set EditText hint color to purple
         builder.setView(viewInflated);
 
         builder.setPositiveButton(android.R.string.ok, (dialog, which) -> {
@@ -114,9 +121,28 @@ public class AllGroupsFragment extends Fragment implements GroupAdapter.OnGroupC
                 Toast.makeText(getContext(), "Group name cannot be empty", Toast.LENGTH_SHORT).show();
             }
         });
+
         builder.setNegativeButton(android.R.string.cancel, (dialog, which) -> dialog.cancel());
 
-        builder.show();
+        AlertDialog dialog = builder.create();
+
+        // Customize the title text color and dialog background color
+        dialog.setOnShowListener(d -> {
+            TextView titleView = dialog.findViewById(android.R.id.title);
+            if (titleView != null) {
+                titleView.setTextColor(getResources().getColor(R.color.purple));
+            }
+
+            // Customize the button text color
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(getResources().getColor(R.color.purple));
+            dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(getResources().getColor(R.color.purple));
+
+            // Set the background color of the dialog's root view
+            ViewGroup rootView = (ViewGroup) dialog.getWindow().getDecorView();
+            rootView.setBackgroundColor(getResources().getColor(R.color.var));
+        });
+
+        dialog.show();
     }
 
     private void createNewGroup(String groupName) {
