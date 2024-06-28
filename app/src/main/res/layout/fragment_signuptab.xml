@@ -101,6 +101,7 @@ tools:context=".SignupTabFragment">
             android:layout_gravity="center"
             android:layout_marginTop="30dp"
             android:background="@drawable/background"
+            android:textColor="@color/var"
             android:text="Signup"
             android:textSize="18sp"
             app:cornerRadius="30dp" />

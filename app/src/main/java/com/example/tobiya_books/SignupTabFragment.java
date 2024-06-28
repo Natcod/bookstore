@@ -11,8 +11,6 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -27,30 +25,31 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
-
 public class SignupTabFragment extends Fragment {
 
+    // UI Elements
     Button signupButton;
     EditText usernameEditText, emailEditText, passwordEditText, confirmEditText, firstNameEditText, lastNameEditText;
 
     // Firestore instance
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
-
-    // Reference to the "Reader" collection
     private CollectionReference readerCollection = db.collection("Reader");
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_signuptab, container, false);
 
+        // Initialize UI elements
         usernameEditText = view.findViewById(R.id.signup_username);
         emailEditText = view.findViewById(R.id.Login_email);
         passwordEditText = view.findViewById(R.id.signup_password);
         confirmEditText = view.findViewById(R.id.signup_confirm);
         firstNameEditText = view.findViewById(R.id.signup_firstname);
         lastNameEditText = view.findViewById(R.id.signup_lastname);
-
         signupButton = view.findViewById(R.id.signup_button);
+
+        // Set onClick listener for the signup button
         signupButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -61,6 +60,7 @@ public class SignupTabFragment extends Fragment {
         return view;
     }
 
+    // Method to validate input and check username/email availability
     private void checkUsernameAndRegister() {
         String username = usernameEditText.getText().toString().trim();
         String email = emailEditText.getText().toString().trim();
@@ -77,6 +77,21 @@ public class SignupTabFragment extends Fragment {
 
         if (!password.equals(confirm)) {
             Toast.makeText(getContext(), "Passwords do not match", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (password.length() < 8) {
+            Toast.makeText(getContext(), "Password must be at least 8 characters long", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (!email.contains("@")) {
+            Toast.makeText(getContext(), "Invalid email address", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (containsNumber(firstName) || containsNumber(lastName)) {
+            Toast.makeText(getContext(), "First Name and Last Name should not contain numbers", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -118,9 +133,18 @@ public class SignupTabFragment extends Fragment {
                 });
     }
 
+    // Helper method to check if a string contains a number
+    private boolean containsNumber(String str) {
+        for (char c : str.toCharArray()) {
+            if (Character.isDigit(c)) {
+                return true;
+            }
+        }
+        return false;
+    }
 
+    // Method to register the user in Firestore
     private void registerUser(String username, String email, String password, String firstName, String lastName) {
-        // Insert data into Firestore
         SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy 'at' hh:mm:ss a z", Locale.getDefault());
         String registrationDate = sdf.format(new Date());
 
@@ -137,15 +161,7 @@ public class SignupTabFragment extends Fragment {
                     @Override
                     public void onSuccess(DocumentReference documentReference) {
                         Toast.makeText(getContext(), "User registered successfully", Toast.LENGTH_SHORT).show();
-                        // Clear input fields after successful registration
-                        usernameEditText.setText("");
-                        emailEditText.setText("");
-                        passwordEditText.setText("");
-                        confirmEditText.setText("");
-                        firstNameEditText.setText("");
-                        lastNameEditText.setText("");
-
-                        // Redirect to LoginFragmentTab
+                        clearInputFields();
                         redirectToLogin();
                     }
                 })
@@ -157,6 +173,17 @@ public class SignupTabFragment extends Fragment {
                 });
     }
 
+    // Method to clear input fields after successful registration
+    private void clearInputFields() {
+        usernameEditText.setText("");
+        emailEditText.setText("");
+        passwordEditText.setText("");
+        confirmEditText.setText("");
+        firstNameEditText.setText("");
+        lastNameEditText.setText("");
+    }
+
+    // Method to redirect to the login screen
     private void redirectToLogin() {
         Intent intent = new Intent(getActivity(), MainActivity2.class);
         startActivity(intent);
