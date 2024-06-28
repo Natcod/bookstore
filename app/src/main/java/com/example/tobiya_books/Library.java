@@ -44,6 +44,7 @@ public class Library extends Fragment implements PurchaseAdapter.OnRemoveClickLi
     private FloatingActionButton floatingActionButton;
     private BottomAppBar bottomAppBar;
     private Toolbar toolbar;
+
     public Library() {
         // Required empty public constructor
     }
@@ -56,6 +57,7 @@ public class Library extends Fragment implements PurchaseAdapter.OnRemoveClickLi
         books = new ArrayList<>();
         currentUserId = getCurrentUserId(); // Retrieve current user ID
     }
+
     @Override
     public void onPrepareOptionsMenu(@NonNull Menu menu) {
         super.onPrepareOptionsMenu(menu);
@@ -64,7 +66,6 @@ public class Library extends Fragment implements PurchaseAdapter.OnRemoveClickLi
         if (searchItem != null) {
             searchItem.setVisible(false);
         }
-
     }
 
     @Override
@@ -79,7 +80,7 @@ public class Library extends Fragment implements PurchaseAdapter.OnRemoveClickLi
         recyclerView.setAdapter(adapter);
 
         if (currentUserId != null) {
-            fetchDataAndDisplay();
+            fetchDataAndDisplay(view);
         } else {
             // Handle the case where currentUserId is null (e.g., show an error message)
             Log.e("LibraryFragment", "Current user ID is null");
@@ -118,14 +119,13 @@ public class Library extends Fragment implements PurchaseAdapter.OnRemoveClickLi
         }
     }
 
-
     private String getCurrentUserId() {
         // Retrieve current user ID from SharedPreferences
         SharedPreferences sharedPreferences = getContext().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
         return sharedPreferences.getString("UserID", null);
     }
 
-    private void fetchDataAndDisplay() {
+    private void fetchDataAndDisplay(View view) {
         // Clear the books list to prevent duplication
         books.clear();
 
@@ -140,12 +140,12 @@ public class Library extends Fragment implements PurchaseAdapter.OnRemoveClickLi
                                 DocumentReference ebookRef = document.getDocumentReference("ebook");
                                 if (ebookRef != null) {
                                     String documentId = document.getId();
-                                    fetchBookDetails(ebookRef, documentId);
+                                    fetchBookDetails(ebookRef, documentId, view);
                                 }
                             }
                             // Check if books list is empty
                             if (books.isEmpty()) {
-                                showEmptyLibraryMessage();
+                                showEmptyLibraryMessage(view);
                             }
                         } else {
                             Log.w("LibraryFragment", "Error getting documents: ", task.getException());
@@ -154,13 +154,15 @@ public class Library extends Fragment implements PurchaseAdapter.OnRemoveClickLi
                 });
     }
 
-    private void showEmptyLibraryMessage() {
+    private void showEmptyLibraryMessage(View view) {
         // Assuming you have a TextView in your fragment_library.xml with id empty_library_message
-        TextView emptyLibraryMessage = getView().findViewById(R.id.empty_library_message);
-       if(emptyLibraryMessage != null) emptyLibraryMessage.setVisibility(View.VISIBLE);
+        TextView emptyLibraryMessage = view.findViewById(R.id.empty_library_message);
+        if (emptyLibraryMessage != null) {
+            emptyLibraryMessage.setVisibility(View.VISIBLE);
+        }
     }
 
-    private void fetchBookDetails(DocumentReference ebookRef, String documentId) {
+    private void fetchBookDetails(DocumentReference ebookRef, String documentId, View view) {
         ebookRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<DocumentSnapshot> task) {
