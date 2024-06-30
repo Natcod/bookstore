@@ -107,7 +107,7 @@ public class AllGroupsFragment extends Fragment implements GroupAdapter.OnGroupC
 
         // Set EditText text color to purple
         final EditText input = viewInflated.findViewById(R.id.input_group_name);
-       
+
         input.setTextColor(getResources().getColor(R.color.purple)); // Set EditText text color to purple
         input.setHintTextColor(getResources().getColor(R.color.purple)); // Set EditText hint color to purple
         builder.setView(viewInflated);
