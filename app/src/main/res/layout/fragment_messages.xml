@@ -15,7 +15,7 @@
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
-            android:layout_height="45dp"
+            android:layout_height="wrap_content"
             android:background="@color/var"
             android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
 
@@ -31,13 +31,12 @@
 
             <ImageButton
                 android:id="@+id/delete_button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="23dp"
+                android:layout_height="30dp"
+                android:layout_gravity="top|end"
                 android:background="@color/var"
                 android:contentDescription="delete"
-                android:src="@drawable/delete"
-                android:layout_gravity="top|end"
-                android:visibility="gone" />
+                android:src="@drawable/delete" />
         </androidx.appcompat.widget.Toolbar>
 
         <RelativeLayout
