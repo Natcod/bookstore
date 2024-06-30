@@ -64,6 +64,11 @@ public class LoginTabFragment extends Fragment {
                                     QuerySnapshot querySnapshot = task.getResult();
                                     if (querySnapshot != null && !querySnapshot.isEmpty()) {
                                         DocumentSnapshot document = querySnapshot.getDocuments().get(0);
+                                        Boolean banned = document.getBoolean("banned");
+                                        if (banned != null && banned) {
+                                            Toast.makeText(getContext(), "Your account is not approved. Please wait until it is approved.", Toast.LENGTH_SHORT).show();
+                                            return;
+                                        }
                                         String actualPassword = document.getString("password");
                                         if (password.equals(actualPassword)) {
                                             String userId = document.getId(); // Get the document ID as user ID
