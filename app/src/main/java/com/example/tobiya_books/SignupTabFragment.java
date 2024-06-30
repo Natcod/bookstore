@@ -2,6 +2,7 @@ package com.example.tobiya_books;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Patterns;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,10 +20,8 @@ import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
 
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
 
 public class SignupTabFragment extends Fragment {
@@ -85,7 +84,7 @@ public class SignupTabFragment extends Fragment {
             return;
         }
 
-        if (!email.contains("@")) {
+        if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
             Toast.makeText(getContext(), "Invalid email address", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -145,8 +144,7 @@ public class SignupTabFragment extends Fragment {
 
     // Method to register the user in Firestore
     private void registerUser(String username, String email, String password, String firstName, String lastName) {
-        SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy 'at' hh:mm:ss a z", Locale.getDefault());
-        String registrationDate = sdf.format(new Date());
+        Date registrationDate = new Date();
 
         Map<String, Object> reader = new HashMap<>();
         reader.put("username", username);
