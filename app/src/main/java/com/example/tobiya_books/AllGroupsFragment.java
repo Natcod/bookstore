@@ -34,6 +34,7 @@ public class AllGroupsFragment extends Fragment implements GroupAdapter.OnGroupC
     private List<Group> groupList = new ArrayList<>();
     private FirebaseFirestore db;
     private String currentUserId; // Store the current user ID here
+    private TextView tvNoGroups; // TextView for the no groups message
 
     public AllGroupsFragment() {
         // Required empty public constructor
@@ -48,6 +49,9 @@ public class AllGroupsFragment extends Fragment implements GroupAdapter.OnGroupC
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         groupAdapter = new GroupAdapter(groupList, this);
         recyclerView.setAdapter(groupAdapter);
+
+        // Initialize the TextView for no groups message
+        tvNoGroups = view.findViewById(R.id.tv_no_groups);
 
         // Access the MaterialButton from the layout
         MaterialButton btnCreateGroup = view.findViewById(R.id.btn_create_group);
@@ -91,6 +95,13 @@ public class AllGroupsFragment extends Fragment implements GroupAdapter.OnGroupC
                             // Compare non-null creationDate values
                             return group2.getCreationDate().compareTo(group1.getCreationDate());
                         });
+
+                        if (groupList.isEmpty()) {
+                            tvNoGroups.setVisibility(View.VISIBLE);
+                        } else {
+                            tvNoGroups.setVisibility(View.GONE);
+                        }
+
                         groupAdapter.notifyDataSetChanged();
                     } else {
                         Log.e("FetchGroup", "Error getting documents: ", task.getException());
@@ -208,8 +219,6 @@ public class AllGroupsFragment extends Fragment implements GroupAdapter.OnGroupC
                     Toast.makeText(getContext(), "Error adding member: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
     }
-
-
 
     private String getCurrentUserId() {
         // Retrieve current user ID from SharedPreferences
