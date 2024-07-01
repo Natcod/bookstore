@@ -252,9 +252,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             }
         }
     }
-
-
-
     private void openFragment(Fragment fragment) {
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         transaction.replace(R.id.fragment_container, fragment);
@@ -777,8 +774,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         } else {
             textViewInitial.setText("");
         }
-if(textViewInitial !=null)        textViewInitial.setVisibility(View.VISIBLE);
-        if(imageViewProfilePhoto !=null)         imageViewProfilePhoto.setVisibility(View.GONE);
+        if(textViewInitial !=null)   textViewInitial.setVisibility(View.VISIBLE);
+        if(imageViewProfilePhoto !=null)     imageViewProfilePhoto.setVisibility(View.GONE);
     }
 
 }
