@@ -22,7 +22,7 @@ import com.google.firebase.firestore.QuerySnapshot;
 
 public class LoginTabFragment extends Fragment {
 
-    private EditText usernameEditText;
+    private EditText emailEditText;
     private EditText passwordEditText;
     private Button loginButton;
 
@@ -41,22 +41,22 @@ public class LoginTabFragment extends Fragment {
             openMainActivity(sharedPreferences.getString("UserID", ""));
         }
 
-        usernameEditText = view.findViewById(R.id.username_edit_text);
+        emailEditText = view.findViewById(R.id.email_edit_text);
         passwordEditText = view.findViewById(R.id.password_edit_text);
         loginButton = view.findViewById(R.id.login_button);
 
         loginButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                final String username = usernameEditText.getText().toString().trim();
+                final String email = emailEditText.getText().toString().trim();
                 final String password = passwordEditText.getText().toString().trim();
 
-                if (username.isEmpty() || password.isEmpty()) {
-                    Toast.makeText(getContext(), "Please enter both username and password", Toast.LENGTH_SHORT).show();
+                if (email.isEmpty() || password.isEmpty()) {
+                    Toast.makeText(getContext(), "Please enter both email and password", Toast.LENGTH_SHORT).show();
                     return;
                 }
 
-                db.collection("Reader").whereEqualTo("username", username).get()
+                db.collection("Reader").whereEqualTo("email", email).get()
                         .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                             @Override
                             public void onComplete(@NonNull Task<QuerySnapshot> task) {
@@ -78,7 +78,7 @@ public class LoginTabFragment extends Fragment {
                                             Toast.makeText(getContext(), "Incorrect password", Toast.LENGTH_SHORT).show();
                                         }
                                     } else {
-                                        Toast.makeText(getContext(), "No user found with the provided username", Toast.LENGTH_SHORT).show();
+                                        Toast.makeText(getContext(), "No user found with the provided email", Toast.LENGTH_SHORT).show();
                                     }
                                 } else {
                                     Toast.makeText(getContext(), "Error: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
