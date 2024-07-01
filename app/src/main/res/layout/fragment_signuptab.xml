@@ -86,6 +86,7 @@ tools:context=".SignupTabFragment">
             android:layout_marginTop="20dp"
             android:padding="8dp"
             android:hint="Confirm Password"
+            android:drawableLeft="@drawable/baseline_lock_24"
             android:textColorHint="@color/black"
             android:inputType="textPassword"
             android:drawablePadding="8dp"
