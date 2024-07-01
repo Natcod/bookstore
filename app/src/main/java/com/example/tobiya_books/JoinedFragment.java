@@ -6,6 +6,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -30,6 +31,7 @@ public class JoinedFragment extends Fragment implements GroupAdapter.OnGroupClic
     private GroupAdapter groupAdapter;
     private List<Group> groupList = new ArrayList<>();
     private FirebaseFirestore db;
+    private TextView tvNoJoinedGroups;
 
     public JoinedFragment() {
         // Required empty public constructor
@@ -43,6 +45,8 @@ public class JoinedFragment extends Fragment implements GroupAdapter.OnGroupClic
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         groupAdapter = new GroupAdapter(groupList, this); // Pass 'this' as the listener
         recyclerView.setAdapter(groupAdapter);
+
+        tvNoJoinedGroups = view.findViewById(R.id.tv_no_joined_groups);
 
         db = FirebaseFirestore.getInstance();
 
@@ -98,19 +102,26 @@ public class JoinedFragment extends Fragment implements GroupAdapter.OnGroupClic
                                         });
                                     }
                                 }
+                                // Show or hide the TextView based on the list size
+                                tvNoJoinedGroups.setVisibility(groupList.isEmpty() ? View.VISIBLE : View.GONE);
                             } else {
                                 Log.d(TAG, "Query snapshot is null");
+                                // Show the TextView if the snapshot is null
+                                tvNoJoinedGroups.setVisibility(View.VISIBLE);
                             }
                         } else {
                             Log.e(TAG, "Error getting joined groups: ", task.getException());
                             Toast.makeText(getContext(), "Error getting joined groups: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                            // Show the TextView in case of an error
+                            tvNoJoinedGroups.setVisibility(View.VISIBLE);
                         }
                     });
         } else {
             Log.d(TAG, "Context is null");
+            // Show the TextView if the context is null
+            tvNoJoinedGroups.setVisibility(View.VISIBLE);
         }
     }
-
 
     private void createNewGroup(String groupName) {
         List<String> members = new ArrayList<>(); // Initialize with an empty list or default members
@@ -145,5 +156,4 @@ public class JoinedFragment extends Fragment implements GroupAdapter.OnGroupClic
                 .addToBackStack(null)
                 .commit();
     }
-
 }
