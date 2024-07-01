@@ -287,9 +287,12 @@ public class Profile extends Fragment {
             String initials = String.valueOf(firstName.charAt(0)) + String.valueOf(lastName.charAt(0));
             textViewInitial.setText(initials);
             textViewInitial.setVisibility(View.VISIBLE);
-            imageViewProfilePhoto.setImageResource(R.drawable.baseline_person_24);
+            imageViewProfilePhoto.setImageResource(R.drawable.circular_background);
+        } else {
+            textViewInitial.setVisibility(View.GONE);
         }
     }
+
 
     private void chooseImage() {
         Intent intent = new Intent();
