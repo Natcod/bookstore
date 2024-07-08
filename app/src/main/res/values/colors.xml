@@ -16,5 +16,9 @@
     <color name="group">#eceef2</color>
     <color name="danger">#a61010</color>
     <color name="yellow">#FFFF00</color>
+    <color name="selected_color">#FFC107</color>
+    <color name="unselected_color">#FFFFFF</color>
+
+
 
 </resources>
