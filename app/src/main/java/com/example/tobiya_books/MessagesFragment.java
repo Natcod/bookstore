@@ -55,7 +55,9 @@ public class MessagesFragment extends Fragment {
     private BottomNavigationView bottomNavigationView;
     private FloatingActionButton floatingActionButton;
     private BottomAppBar bottomAppBar;
- private Toolbar toolbar;
+    private ImageButton groupMembersButton;
+
+    private Toolbar toolbar;
 
     private static final String TAG = "MessagesFragment";
 
@@ -152,8 +154,63 @@ public class MessagesFragment extends Fragment {
         // Set click listener for delete button
         deleteButton.setOnClickListener(v -> showDeleteConfirmationDialog());
 
+        // Set click listener for GroupMembers button
+        groupMembersButton = view.findViewById(R.id.groupMembersButton);
+        groupMembersButton.setOnClickListener(v -> showGroupMembers());
+
+
         return view;
     }
+
+    private void showGroupMembers() {
+        db.collection("BookClubMember")
+                .whereEqualTo("bookClub", db.collection("BookClub").document(groupId))
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    List<GroupMember> members = new ArrayList<>();
+                    Log.d(TAG, "Number of group members found: " + queryDocumentSnapshots.size());
+                    for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
+                        DocumentReference readerRef = document.getDocumentReference("reader");
+                        if (readerRef != null) {
+                            readerRef.get().addOnSuccessListener(readerDocument -> {
+                                if (readerDocument.exists()) {
+                                    String firstName = readerDocument.getString("firstName");
+                                    String lastName = readerDocument.getString("lastName");
+                                    String profilePictureUrl = readerDocument.getString("profilePhotoUrl");
+
+                                    if (firstName != null && lastName != null) {
+                                        Log.d(TAG, "Group member: " + firstName + " " + lastName + ", URL: " + profilePictureUrl);
+                                        members.add(new GroupMember(firstName, lastName, profilePictureUrl));
+                                    } else {
+                                        Log.w(TAG, "Missing data for member: " + readerDocument.getId());
+                                    }
+
+                                    // Show the dialog if all members have been processed
+                                    if (members.size() == queryDocumentSnapshots.size()) {
+                                        GroupMembersDialogFragment dialogFragment = GroupMembersDialogFragment.newInstance(members);
+                                        dialogFragment.show(getChildFragmentManager(), "GroupMembersDialogFragment");
+                                    }
+                                } else {
+                                    Log.w(TAG, "Reader document does not exist: " + readerRef.getId());
+                                }
+                            }).addOnFailureListener(e -> {
+                                Log.e(TAG, "Error getting reader document: " + readerRef.getId(), e);
+                            });
+                        } else {
+                            Log.w(TAG, "Reader reference is null for document: " + document.getId());
+                        }
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error getting group members", e);
+                    Toast.makeText(getContext(), "Error getting group members: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+    }
+
+
+
+
+
     @Override
     public void onPrepareOptionsMenu(@NonNull Menu menu) {
         super.onPrepareOptionsMenu(menu);
