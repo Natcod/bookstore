@@ -36,10 +36,10 @@ public class Store extends Fragment {
                             tab.setText("Free");
                             break;
                         case 2:
-                            tab.setText("Paid");
+                            tab.setText("Payment Based");
                             break;
                         case 3:
-                            tab.setText("Subscription");
+                            tab.setText("Subscription Based");
                             break;
                     }
                 }).attach();
