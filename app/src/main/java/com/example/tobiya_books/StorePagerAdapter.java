@@ -20,9 +20,9 @@ public class StorePagerAdapter extends FragmentStateAdapter {
             case 1:
                 return BookListFragment.newInstance("Free");
             case 2:
-                return BookListFragment.newInstance("Paid");
+                return BookListFragment.newInstance("Payment Based");
             case 3:
-                return BookListFragment.newInstance("Subscription");
+                return BookListFragment.newInstance("Subscription Based");
             default:
                 return null;
         }
