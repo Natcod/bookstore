@@ -18,6 +18,11 @@
         <!-- Customize button text color -->
         <item name="android:textColor">@color/black</item>
     </style>
+    <style name="CustomTabText" parent="TextAppearance.Design.Tab">
+        <item name="android:textSize">14sp</item>
+
+    </style>
+
 
 
 </resources>
