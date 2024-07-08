@@ -26,8 +26,10 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -588,17 +590,41 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         ImageView cancelButton = dialog.findViewById(R.id.cancelButton);
         cancelButton.setOnClickListener(view -> dialog.dismiss());
 
-        Button buyNowButton = dialog.findViewById(R.id.buyButton);
+        EditText transactionIdEditText = dialog.findViewById(R.id.transactionIdEditText);
+        transactionIdEditText.setVisibility(View.GONE);
+
+        Button buyNowButton = dialog.findViewById(R.id.SubscribeButton);
         buyNowButton.setOnClickListener(v -> {
-            // Extract subscription price from the dialog
-            // Assuming you have a method to retrieve the price, let's call it getSubscriptionPrice()
-            double price = getSubscriptionPrice();
+            if (transactionIdEditText.getVisibility() == View.GONE) {
+                // Show the transaction ID input field if it's not visible
+                transactionIdEditText.setVisibility(View.VISIBLE);
+            } else {
+                // Extract subscription price from the dialog
+                double price = getSubscriptionPrice();
 
-            // Retrieve the selected subscription type from the radio buttons
-            String type = getSelectedSubscriptionType();
+                // Retrieve the selected subscription type from the radio buttons
+                String type = getSelectedSubscriptionType();
 
-            // Add the subscription to the database
-            addSubscriptionToDatabase(price, type);
+                // Retrieve the transaction ID from the input field
+                String transactionId = transactionIdEditText.getText().toString();
+
+                // Add the subscription to the database with the transaction ID
+                addSubscriptionToDatabase(price, type, transactionId);
+            }
+        });
+
+        ImageButton paymentOptionButton = dialog.findViewById(R.id.paymentOptionButton);
+        paymentOptionButton.setOnClickListener(v -> {
+            // Handle payment option selection
+            paymentOptionButton.setSelected(true);
+            dialog.findViewById(R.id.paymentOption2Button).setSelected(false);
+        });
+
+        ImageButton paymentOption2Button = dialog.findViewById(R.id.paymentOption2Button);
+        paymentOption2Button.setOnClickListener(v -> {
+            // Handle payment option selection
+            paymentOption2Button.setSelected(true);
+            dialog.findViewById(R.id.paymentOptionButton).setSelected(false);
         });
 
         fetchSubscriptionPrices(); // Fetch and update prices before showing the dialog
@@ -610,6 +636,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         dialog.getWindow().setGravity(Gravity.BOTTOM);
     }
 
+    private void hideTransactionIdInputField() {
+        EditText transactionIdEditText = dialog.findViewById(R.id.transactionIdEditText);
+        transactionIdEditText.setVisibility(View.GONE);
+    }
+
+    private void resetRadioButtons() {
+        RadioGroup radioGroup = dialog.findViewById(R.id.radioGroup);
+        radioGroup.clearCheck(); // Clear selection
+    }
     private double getSubscriptionPrice() {
         RadioButton dailyRadioButton = dialog.findViewById(R.id.radioButton_daily);
         RadioButton weeklyRadioButton = dialog.findViewById(R.id.radioButton_weekly);
@@ -663,7 +698,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     // Add the subscription to the Firestore database
-    private void addSubscriptionToDatabase(double price, String type) {
+    private void addSubscriptionToDatabase(double price, String type, String transactionId) {
         // Retrieve the UserID from SharedPreferences
         String userID = sharedPreferences.getString("UserID", "");
 
@@ -679,6 +714,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             subscriptionData.put("price", price);
             subscriptionData.put("reader", FirebaseFirestore.getInstance().document("Reader/" + userID));
             subscriptionData.put("type", type);
+            subscriptionData.put("transactionId", transactionId); // Add transaction ID
+            subscriptionData.put("approvalStatus", false); // Set approval status to false
 
             // Get reference to the Subscription collection
             CollectionReference subscriptionsRef = FirebaseFirestore.getInstance().collection("Subscription");
@@ -687,7 +724,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             subscriptionsRef.add(subscriptionData)
                     .addOnSuccessListener(documentReference -> {
                         Log.d(TAG, "Subscription added with ID: " + documentReference.getId());
-                        Toast.makeText(MainActivity.this, "Subscription added successfully!", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(MainActivity.this, "Subscription added successfully, After approval, your book will be ready. Happy reading!", Toast.LENGTH_SHORT).show();
+                        hideTransactionIdInputField();
+                        resetRadioButtons();
                     })
                     .addOnFailureListener(e -> {
                         Log.e(TAG, "Error adding subscription", e);
@@ -698,6 +737,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             Toast.makeText(MainActivity.this, "Failed to add subscription: UserID is empty", Toast.LENGTH_SHORT).show();
         }
     }
+
 
     // Calculate the end date of the subscription based on the start date and subscription type
     private Timestamp calculateEndDate(Timestamp startDate, String type) {
