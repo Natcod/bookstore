@@ -30,11 +30,21 @@
                 android:contentDescription="back" />
 
             <ImageButton
+                android:id="@+id/members_button"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_gravity="top|end"
+                android:layout_marginEnd="50dp"
+            android:contentDescription="Group members"
+            android:src="@drawable/baseline_account_circle_24" />
+
+            <ImageButton
                 android:id="@+id/delete_button"
                 android:layout_width="23dp"
                 android:layout_height="30dp"
                 android:layout_gravity="top|end"
                 android:background="@color/var"
+                android:layout_marginEnd="8dp"
                 android:contentDescription="delete"
                 android:src="@drawable/delete" />
         </androidx.appcompat.widget.Toolbar>
