@@ -8,7 +8,7 @@ import androidx.viewpager2.adapter.FragmentStateAdapter;
 
 public class BookPagerAdapter extends FragmentStateAdapter {
 
-    private static final String[] TAB_TITLES = new String[]{"All", "Free", "Paid", "Subscription"};
+    private static final String[] TAB_TITLES = new String[]{"All", "Free", "Payment Based", "Subscription Based"};
 
     public BookPagerAdapter(@NonNull FragmentActivity fragmentActivity) {
         super(fragmentActivity);
