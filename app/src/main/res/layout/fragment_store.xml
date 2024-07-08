@@ -14,7 +14,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@color/var"
-        app:tabTextColor="@color/black"/>
+        app:tabTextAppearance="@style/CustomTabText"
+        app:tabTextColor="@color/purple" />
+
 
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/view_pager"

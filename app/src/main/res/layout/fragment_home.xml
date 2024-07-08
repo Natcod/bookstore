@@ -63,7 +63,7 @@
                 android:layout_height="wrap_content"
                 android:layout_margin="10dp"
 
-                android:text="Paid E-Books"
+                android:text="Payment Based E-Books"
                 android:textAllCaps="true"
                 android:textColor="@color/white"
                 android:background="@drawable/round_send_button"
