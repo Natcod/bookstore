@@ -102,35 +102,35 @@
 
         <ImageButton
             android:id="@+id/paymentOptionButton"
-            android:layout_width="80dp"
+            android:layout_width="52dp"
             android:layout_height="70dp"
             android:layout_marginLeft="5dp"
             android:layout_marginRight="5dp"
-            android:background="@drawable/tele" />
-
-        <ImageButton
-            android:id="@+id/paymentOption1Button"
-            android:layout_width="80dp"
-            android:layout_height="70dp"
-            android:layout_marginRight="5dp"
-            android:background="@drawable/awash" />
-
+            android:background="@drawable/tele"
+            android:onClick="onPaymentOptionClicked" />
         <ImageButton
             android:id="@+id/paymentOption2Button"
             android:layout_width="80dp"
             android:layout_height="70dp"
             android:layout_marginRight="5dp"
-            android:background="@drawable/cbe" />
+            android:background="@drawable/cbe"
+            android:onClick="onPaymentOption2Clicked" />
 
-        <ImageButton
-            android:id="@+id/paymentOption3Button"
-            android:layout_width="80dp"
-            android:layout_height="70dp"
-            android:background="@drawable/abi" />
     </LinearLayout>
 
+    <!-- Add transaction ID input field -->
+    <EditText
+        android:id="@+id/transactionIdEditText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Enter Transaction ID"
+        android:visibility="gone"
+        android:textColor="@color/purple"
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="20dp" />
+
     <Button
-        android:id="@+id/buyButton"
+        android:id="@+id/SubscribeButton"
         android:layout_width="150dp"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
