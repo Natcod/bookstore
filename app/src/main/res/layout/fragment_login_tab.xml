@@ -20,12 +20,12 @@
                 android:layout_width="300dp"
                 android:layout_height="50dp"
                 android:layout_gravity="center"
-                android:id="@+id/Login_username"
+                android:id="@+id/email_edit_text"
                 android:textColorHint="@color/black"
                 android:layout_marginTop="30dp"
                 android:padding="8dp"
-                android:hint="Username"
-                android:drawableLeft="@drawable/baseline_person_24"
+                android:hint="Email"
+                android:drawableLeft="@drawable/baseline_attach_email_24"
                 android:drawablePadding="8dp"
                 android:background="@drawable/edittext_bkg"/>
 
@@ -33,7 +33,7 @@
                 android:layout_width="300dp"
                 android:layout_height="50dp"
                 android:layout_gravity="center"
-                android:id="@+id/login_password"
+                android:id="@+id/password_edit_text"
                 android:layout_marginTop="20dp"
                 android:padding="8dp"
                 android:hint="Password"
@@ -50,9 +50,10 @@
                 android:layout_marginTop="30dp"
                 android:id="@+id/login_button"
                 android:background="@drawable/background"
+                android:textColor="@color/var"
                 android:textSize="18sp"
                 android:text="Login"
-                app:cornerRadius = "30dp"/>
+                app:cornerRadius="30dp"/>
         </LinearLayout>
     </LinearLayout>
 

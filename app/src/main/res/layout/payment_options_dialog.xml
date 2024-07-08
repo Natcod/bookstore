@@ -1,0 +1,57 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Payment Options"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="16dp"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center">
+
+        <ImageView
+            android:id="@+id/payment_option_1_copy"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:src="@drawable/cbe"
+            android:scaleType="fitCenter"
+            android:layout_marginEnd="8dp"/>
+
+        <ImageView
+            android:id="@+id/payment_option_2_copy"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:src="@drawable/awash"
+            android:scaleType="fitCenter"
+            android:layout_marginEnd="8dp"/>
+
+        <ImageView
+            android:id="@+id/payment_option_3_copy"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:src="@drawable/tele"
+            android:scaleType="fitCenter"
+            android:layout_marginEnd="8dp"/>
+
+        <ImageView
+            android:id="@+id/payment_option_4_copy"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:src="@drawable/abi"
+            android:scaleType="fitCenter"/>
+    </LinearLayout>
+</LinearLayout>

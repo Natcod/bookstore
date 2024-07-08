@@ -4,7 +4,17 @@
     <color name="white">#FFFFFFFF</color>
     <color name="red">#FF0000</color>
     <color name="purple_200">#FFBB86FC</color>
+    <color name="test">#85586F</color>
     <color name="purple_500">#FF6200EE</color>
     <color name="purple">#645394</color>
     <color name="lavender">#645394</color>
+    <color name="purCon">  #FFFAC0</color>
+    <color name="lightWhite">#eff2f7</color>
+    <color name="var">#e9ebf0</color>
+    <color name="wheat">#F5DEB3</color>
+    <color name="tab">#b5bac4</color>
+    <color name="group">#eceef2</color>
+    <color name="danger">#a61010</color>
+    <color name="yellow">#FFFF00</color>
+
 </resources>

@@ -1,3 +1,5 @@
+// BooksAdapter.java
+
 package com.example.tobiya_books;
 
 import android.content.Context;
@@ -10,21 +12,23 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
+
 import java.util.List;
-import java.util.Map;
 
 public class BooksAdapter extends RecyclerView.Adapter<BooksAdapter.BookViewHolder> {
 
     private List<Book> books;
     private LayoutInflater inflater;
     private OnBookClickListener listener;
-    private static Map<String, Integer> imageMap;
+    private Context context;
 
     public BooksAdapter(Context context, List<Book> books, OnBookClickListener listener) {
         this.inflater = LayoutInflater.from(context);
         this.books = books;
         this.listener = listener;
-        imageMap = DrawableUtils.getDrawableMap(context);
+        this.context = context;
     }
 
     @NonNull
@@ -37,12 +41,17 @@ public class BooksAdapter extends RecyclerView.Adapter<BooksAdapter.BookViewHold
     @Override
     public void onBindViewHolder(@NonNull BookViewHolder holder, int position) {
         Book book = books.get(position);
-        holder.bind(book, listener);
+        holder.bind(context, book, listener);
     }
 
     @Override
     public int getItemCount() {
-        return books.size();
+        return books.isEmpty() ? 0 : books.size();
+    }
+
+    public void updateList(List<Book> newBooks) {
+        books = newBooks;
+        notifyDataSetChanged();
     }
 
     static class BookViewHolder extends RecyclerView.ViewHolder {
@@ -57,17 +66,14 @@ public class BooksAdapter extends RecyclerView.Adapter<BooksAdapter.BookViewHold
             coverImageView = itemView.findViewById(R.id.imageview_cover);
         }
 
-        public void bind(final Book book, final OnBookClickListener listener) {
+        public void bind(Context context, final Book book, final OnBookClickListener listener) {
             titleTextView.setText(book.getTitle());
             authorTextView.setText(book.getAuthor());
 
-            // Load cover image from drawable folder using the map
-            Integer imageResId = imageMap.get(book.getCoverImageName());
-            if (imageResId != null) {
-                coverImageView.setImageResource(imageResId);
-            } else {
-                coverImageView.setImageResource(R.drawable.yoratorad); // Set a default image if not found
-            }
+            Glide.with(context)
+                    .load(book.getCoverImage())
+                    .apply(new RequestOptions().placeholder(R.drawable.logot).error(R.drawable.logot))
+                    .into(coverImageView);
 
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override

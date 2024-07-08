@@ -2,17 +2,24 @@ package com.example.tobiya_books;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.appcompat.widget.Toolbar;
 import androidx.viewpager2.widget.ViewPager2;
 
+import com.google.android.material.bottomappbar.BottomAppBar;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
+import com.google.firebase.FirebaseApp;
 
 public class BookClub extends Fragment {
 
@@ -24,6 +31,10 @@ public class BookClub extends Fragment {
 
     private ViewPager2 viewPager;
     private TabLayout tabLayout;
+    private BottomNavigationView bottomNavigationView;
+    private FloatingActionButton floatingActionButton;
+    private BottomAppBar bottomAppBar;
+    private Toolbar toolbar;
 
     public BookClub() {
         // Required empty public constructor
@@ -41,10 +52,59 @@ public class BookClub extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
+
+        // Initialize Firebase
+        FirebaseApp.initializeApp(requireContext());
+
         if (getArguments() != null) {
             mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        checkAndSetNavigationVisibility();
+    }
+
+    private void checkAndSetNavigationVisibility() {
+        bottomNavigationView = getActivity().findViewById(R.id.bottom_navigation);
+        floatingActionButton = getActivity().findViewById(R.id.fab);
+        bottomAppBar = getActivity().findViewById(R.id.bottomAppBar);
+        toolbar = getActivity().findViewById(R.id.toolbar);
+
+        if (bottomNavigationView != null) {
+            bottomNavigationView.setVisibility(View.VISIBLE);
+        }
+
+        if (floatingActionButton != null) {
+            floatingActionButton.setVisibility(View.VISIBLE);
+        }
+
+        if (bottomAppBar != null) {
+            bottomAppBar.setVisibility(View.VISIBLE);
+        }
+
+        if (toolbar != null) {
+            toolbar.setVisibility(View.VISIBLE);
+        }
+    }
+
+    @Override
+    public void onPrepareOptionsMenu(@NonNull Menu menu) {
+        super.onPrepareOptionsMenu(menu);
+        // Hide the search menu item
+        MenuItem searchItem = menu.findItem(R.id.action_search);
+        if (searchItem != null) {
+            searchItem.setVisible(false);
+        }
+    }
+
+    @Override
+    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
     }
 
     @Nullable
@@ -69,22 +129,6 @@ public class BookClub extends Fragment {
                     break;
             }
         }).attach();
-
-        Button allGroupsButton = view.findViewById(R.id.button_all_groups);
-        allGroupsButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                viewPager.setCurrentItem(0); // Switch to the "All Groups" tab
-            }
-        });
-
-        Button joinedButton = view.findViewById(R.id.button_joined);
-        joinedButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                viewPager.setCurrentItem(1); // Switch to the "Joined" tab
-            }
-        });
 
         return view;
     }

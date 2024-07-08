@@ -5,8 +5,8 @@
         android:color="@color/white"/>
 
     <corners
-        android:topLeftRadius="40dp"
-        android:topRightRadius="40dp" />
+        android:topLeftRadius="30dp"
+        android:topRightRadius="30dp" />
     <padding
         android:left="10dp"
         android:right="10dp"
@@ -15,6 +15,6 @@
 
     <stroke
         android:width="2dp"
-        android:color="@color/lavender"/>
+        android:color="@color/var"/>
 
 </shape>

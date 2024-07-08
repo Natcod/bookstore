@@ -2,17 +2,18 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/root_view"
     android:layout_height="match_parent"
-    android:background="@color/white"
+    android:background="@color/var"
     tools:context=".Aboutus">
-
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
         android:gravity="center"
-        android:layout_above="@id/cardview"
+        android:background="@color/var"
         android:padding="28dp">
 
         <TextView
@@ -22,59 +23,49 @@
             android:textStyle="bold"
             android:fontFamily="sans-serif-medium"
             android:textSize="32sp"
-            android:textColor="#ffffff"></TextView>
+            android:textColor="#ffffff" />
     </LinearLayout>
 
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_alignParentBottom="true"
-
+        app:cardBackgroundColor="@color/var"
         android:id="@+id/cardview">
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="vertical"
-                android:layout_marginTop="120dp"
-                android:padding="28dp">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:layout_marginTop="120dp"
+            android:padding="28dp">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Welcome To Tobiya BookStore"
-                    android:textSize="20sp"
-                    android:layout_marginTop="10dp"
-                    android:layout_marginLeft="10dp"
-                    android:textStyle="bold"></TextView>
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Our Android Bookstore App aims to support Ethiopian local publishers by providing them with a digital platform to showcase and distribute their eBooks. We strive to promote Ethiopian literature and culture by making these works easily accessible to readers. With our user-friendly interface, integrated virtual book club, and convenient membership options, we aim to create an engaging and immersive reading experience for our users."
-                    android:textSize="15sp"
-                    android:layout_marginTop="10dp"
-                    android:layout_marginLeft="0dp"
-                    ></TextView>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Welcome To Tobiya BookStore"
+                android:textSize="20sp"
+                android:layout_marginTop="10dp"
+                android:layout_marginLeft="10dp"
+                android:textStyle="bold" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Our Android Bookstore App aims to support Ethiopian local publishers by providing them with a digital platform to showcase and distribute their eBooks. We strive to promote Ethiopian literature and culture by making these works easily accessible to readers. With our user-friendly interface, integrated virtual book club, and convenient membership options, we aim to create an engaging and immersive reading experience for our users."
+                android:textSize="15sp"
+                android:layout_marginTop="10dp"
+                android:layout_marginLeft="0dp" />
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center">
 
-                    <ImageButton
-                        android:id="@+id/instagram_button"
-                        android:layout_width="50dp"
-                        android:layout_height="40dp"
-                        android:layout_margin="12dp"
-                        android:background="@drawable/insta"></ImageButton>
-                    <ImageButton
-                        android:id="@+id/telegram_button"
-                        android:layout_width="50dp"
-                        android:layout_height="40dp"
-                        android:layout_margin="12dp"
-                        android:background="@drawable/tele"></ImageButton>
-                </LinearLayout>
-            </LinearLayout>
+            <!-- Add the new Button here -->
+            <Button
+                android:id="@+id/go_to_publisher_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Want to publish"
+                android:backgroundTint="@color/white"
+                android:layout_gravity="center"
+                android:layout_marginTop="20dp" />
+        </LinearLayout>
     </androidx.cardview.widget.CardView>
 </FrameLayout>

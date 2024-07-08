@@ -1,18 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".Library">
+    android:orientation="vertical"
+    android:paddingBottom="85dp"
+    android:layout_margin="12dp">
 
-    <!-- TODO: Update blank fragment layout -->
-    <TextView
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recycler_view_books"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="Library"
-        android:textSize="36sp"
-        android:gravity="center"
-        android:textColor="@color/white"/>
-
-
-</FrameLayout>
+        android:layout_height="match_parent" />
+    <TextView
+        android:id="@+id/empty_library_message"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:textColor="@color/black"
+        android:text="Your library is empty. Add purchases to view here."
+        android:textAppearance="?android:textAppearanceMedium"
+        android:visibility="gone" />
+</LinearLayout>

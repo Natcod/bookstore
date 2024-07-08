@@ -2,7 +2,8 @@
   "project_info": {
     "project_number": "1020858474315",
     "project_id": "tobiya-books",
-    "storage_bucket": "tobiya-books.appspot.com"
+    "storage_bucket": "tobiya-books.appspot.com",
+    "firebase_url": "https://tobiya-books.firebaseio.com"
   },
   "client": [
     {

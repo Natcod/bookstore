@@ -5,60 +5,32 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:paddingBottom="85dp"
     tools:context=".BookClub">
-
-    <!-- "All Groups" Button -->
-    <Button
-        android:id="@+id/button_all_groups"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:text="All Groups"
-        android:layout_margin="16dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/button_joined"
-        app:layout_constraintHorizontal_chainStyle="spread_inside"/>
-
-    <!-- "Joined" Button -->
-    <Button
-        android:id="@+id/button_joined"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:text="Joined"
-        android:layout_margin="16dp"
-        app:layout_constraintStart_toEndOf="@id/button_all_groups"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_chainStyle="spread_inside"/>
-
-    <!-- ViewPager2 for swiping between tabs -->
-    <androidx.viewpager2.widget.ViewPager2
-        android:id="@+id/view_pager"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        app:layout_constraintTop_toBottomOf="@id/button_all_groups"
-        app:layout_constraintBottom_toTopOf="@id/tab_layout"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
 
     <!-- TabLayout for the ViewPager -->
     <com.google.android.material.tabs.TabLayout
         android:id="@+id/tab_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:background="@color/var"
+        app:tabTextColor="@color/black"
+        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- FloatingActionButton for creating a new group -->
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fab_create_group"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="66dp"
-        android:layout_marginRight="16dp"
+    <!-- ViewPager2 for swiping between tabs -->
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/view_pager"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginBottom="0dp"
+        android:background="@color/lightWhite"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:src="@drawable/plus"
-        app:backgroundTint="@color/white"
-        app:fabSize="normal"/>
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tab_layout"
+        app:layout_constraintVertical_bias="0.0" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

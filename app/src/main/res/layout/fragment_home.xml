@@ -1,61 +1,84 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".HomeFragment"
-    android:padding="8dp">
+    android:orientation="vertical"
+    android:paddingBottom="85dp">
 
-    <LinearLayout
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+       >
 
-        <!-- New Arrivals Section -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="New Arrivals"
-            android:textSize="18sp"
-            android:padding="16dp" />
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recycler_view_new_arrivals"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:paddingBottom="16dp" />
+            android:orientation="vertical"
+            android:layout_marginTop="10dp">
 
-        <!-- Best Sellers Section -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Best Sellers"
-            android:textSize="18sp"
-            android:padding="16dp" />
+            <!-- Recent Books Section -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="10dp"
+                android:text="New Arrivals"
+                android:textAllCaps="true"
+                android:background="@drawable/round_send_button"
+                android:textColor="@color/white"
+                android:textSize="18sp"
+                android:padding="16dp" />
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recycler_view_best_sellers"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:paddingBottom="16dp" />
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recycler_view_recent_books"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:scrollbars="horizontal"
+                android:paddingBottom="16dp" />
 
-        <!-- Free Books Section -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Free Books"
-            android:textSize="18sp"
-            android:padding="16dp" />
+            <!-- Free Books Section -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="10dp"
+                android:text="Free E-Books"
+                android:textAllCaps="true"
+                android:textColor="@color/white"
+                android:background="@drawable/round_send_button"
+                android:textSize="18sp"
+                android:padding="16dp" />
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recycler_view_free_books"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:paddingBottom="16dp" />
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recycler_view_free_books"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:scrollbars="horizontal"
+            />
 
-    </LinearLayout>
+            <!-- Paid Books Section -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="10dp"
 
-</ScrollView>
+                android:text="Payment Based E-Books"
+                android:textAllCaps="true"
+                android:textColor="@color/white"
+                android:background="@drawable/round_send_button"
+                android:textSize="18sp"
+                android:padding="16dp" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recycler_view_paid_books"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:scrollbars="horizontal"
+                android:paddingBottom="26dp" />
+
+        </LinearLayout>
+
+    </ScrollView>
+</LinearLayout>
