@@ -183,7 +183,7 @@ public class SignupTabFragment extends Fragment {
 
     // Method to redirect to the login screen
     private void redirectToLogin() {
-        Intent intent = new Intent(getActivity(), MainActivity2.class);
+        Intent intent = new Intent(getActivity(), MainActivity.class);
         startActivity(intent);
         getActivity().finish(); // Call finish() if you want to close the current activity
     }
