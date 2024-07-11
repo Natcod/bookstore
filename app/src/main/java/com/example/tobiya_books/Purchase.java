@@ -9,7 +9,7 @@ public class Purchase {
     private Timestamp purchaseDate;
     private DocumentReference reader;
     private String transactionId;
-    private boolean approvalStatus;
+    private String approvalStatus;
 
     public Purchase() {
         // Default constructor required for Firestore
@@ -55,11 +55,11 @@ public class Purchase {
         this.transactionId = transactionId;
     }
 
-    public boolean isApprovalStatus() {
+    public String getApprovalStatus() {
         return approvalStatus;
     }
 
-    public void setApprovalStatus(boolean approvalStatus) {
+    public void setApprovalStatus(String approvalStatus) {
         this.approvalStatus = approvalStatus;
     }
 }
