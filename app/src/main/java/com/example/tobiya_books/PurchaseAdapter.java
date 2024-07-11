@@ -53,6 +53,7 @@ public class PurchaseAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         }
     }
 
+
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         if (holder instanceof EmptyViewHolder) {
@@ -87,16 +88,26 @@ public class PurchaseAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 } else {
                     Toast.makeText(context, "Downloading PDF...", Toast.LENGTH_SHORT).show();
 
+                    CustomProgressDialog progressDialog = new CustomProgressDialog(context);
+                    progressDialog.show();
+
                     DownloadUtil.downloadPdf(context, pdfUrl, fileName, new DownloadUtil.DownloadCallback() {
                         @Override
                         public void onDownloadComplete(String filePath) {
+                            progressDialog.dismiss();
                             Toast.makeText(context, "Download complete. Opening PDF...", Toast.LENGTH_SHORT).show();
                             openPdf(filePath);
                         }
 
                         @Override
                         public void onDownloadError(Exception e) {
+                            progressDialog.dismiss();
                             Toast.makeText(context, "Failed to download PDF: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+
+                        @Override
+                        public void onProgressUpdate(int progress) {
+                            progressDialog.setProgress(progress);
                         }
                     });
                 }
@@ -109,6 +120,7 @@ public class PurchaseAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             });
         }
     }
+
 
     private void openPdf(String filePath) {
         FragmentActivity activity = (FragmentActivity) context;
