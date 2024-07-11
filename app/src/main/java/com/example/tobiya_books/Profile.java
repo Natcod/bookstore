@@ -20,7 +20,6 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.appcompat.widget.Toolbar;
 
@@ -40,7 +39,7 @@ import com.google.android.material.bottomappbar.BottomAppBar;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Profile extends Fragment implements OnBackPressedListener {
+public class Profile extends Fragment {
 
     private EditText editTextFirstName, editTextLastName, editTextUsername, editTextEmail;
     private ImageView imageViewProfilePhoto;
@@ -56,30 +55,32 @@ public class Profile extends Fragment implements OnBackPressedListener {
     private BottomAppBar bottomAppBar;
     private Toolbar toolbar;
 
-
+    private ProgressDialog progressDialog;
 
     private static final String USER_COLLECTION = "Reader";
 
     private Uri profileImageUri = null;
-    private AlertDialog progressDialog;
+
     public Profile() {
         // Required empty public constructor
     }
-
-    public static Profile newInstance() {
-        return new Profile();
+    public interface OnUserProfileUpdatedListener {
+        void onUserProfileUpdated(String userId);
     }
+    private OnUserProfileUpdatedListener callback;
 
     @Override
-    public void onBackPressed() {
-        if (editTextFirstName.hasFocus() || editTextLastName.hasFocus() ||
-                editTextUsername.hasFocus() || editTextEmail.hasFocus()) {
-            clearFocusFromInputFields();
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+        if (context instanceof OnUserProfileUpdatedListener) {
+            callback = (OnUserProfileUpdatedListener) context;
         } else {
-            Intent intent = new Intent(getActivity(), MainActivity.class);
-            startActivity(intent);
-            getActivity().finish(); // Optional: Finish the current activity if you don't want to keep it in the back stack
+            throw new RuntimeException(context.toString()
+                    + " must implement OnUserProfileUpdatedListener");
         }
+    }
+    public static Profile newInstance() {
+        return new Profile();
     }
 
     @Override
@@ -89,23 +90,11 @@ public class Profile extends Fragment implements OnBackPressedListener {
         db = FirebaseFirestore.getInstance();
         storage = FirebaseStorage.getInstance();
         storageRef = storage.getReference().child("profilePicture");
+        progressDialog = new ProgressDialog(getContext());
+        progressDialog.setMessage("Please wait...");
+        progressDialog.setCancelable(false);
     }
 
-    private void showCustomProgressDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(), R.style.CustomProgressDialog);
-        LayoutInflater inflater = getActivity().getLayoutInflater();
-        View dialogView = inflater.inflate(R.layout.custom_progress_upload, null);
-        builder.setView(dialogView);
-        builder.setCancelable(false);
-        progressDialog = builder.create();
-        progressDialog.show();
-    }
-
-    private void dismissCustomProgressDialog() {
-        if (progressDialog != null && progressDialog.isShowing()) {
-            progressDialog.dismiss();
-        }
-    }
     @Override
     public void onPrepareOptionsMenu(@NonNull Menu menu) {
         super.onPrepareOptionsMenu(menu);
@@ -264,14 +253,6 @@ public class Profile extends Fragment implements OnBackPressedListener {
         }
     }
 
-    private void clearFocusFromInputFields() {
-        editTextFirstName.clearFocus();
-        editTextLastName.clearFocus();
-        editTextUsername.clearFocus();
-        editTextEmail.clearFocus();
-        hideKeyboard();
-    }
-
     private void hideKeyboard() {
         View view = getActivity().getCurrentFocus();
         if (view != null) {
@@ -281,9 +262,11 @@ public class Profile extends Fragment implements OnBackPressedListener {
     }
 
     private void fetchUserProfile(String userId) {
+        progressDialog.show();
         db.collection(USER_COLLECTION).document(userId).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                progressDialog.dismiss();
                 if (task.isSuccessful()) {
                     DocumentSnapshot document = task.getResult();
                     if (document != null && document.exists()) {
@@ -302,14 +285,12 @@ public class Profile extends Fragment implements OnBackPressedListener {
                             Glide.with(Profile.this)
                                     .load(profilePhotoUrl)
                                     .placeholder(R.drawable.baseline_person_24)
+                                    .error(R.drawable.baseline_person_24)
                                     .circleCrop()
                                     .into(imageViewProfilePhoto);
                             textViewInitial.setVisibility(View.GONE);
                         } else {
-                            // Set initial based on the user's name if no profile photo URL is available
-                            String initial = getInitialFromName(firstName, lastName);
-                            textViewInitial.setText(initial);
-                            textViewInitial.setVisibility(View.VISIBLE);
+                            showInitials(firstName, lastName);
                         }
                     } else {
                         Toast.makeText(getActivity(), "User profile not found", Toast.LENGTH_SHORT).show();
@@ -321,91 +302,107 @@ public class Profile extends Fragment implements OnBackPressedListener {
         });
     }
 
-    private String getInitialFromName(String firstName, String lastName) {
-        StringBuilder initial = new StringBuilder();
-        if (firstName != null && !firstName.isEmpty()) {
-            initial.append(Character.toUpperCase(firstName.charAt(0)));
+    private void showInitials(String firstName, String lastName) {
+        if (firstName != null && !firstName.isEmpty() && lastName != null && !lastName.isEmpty()) {
+            String initials = String.valueOf(firstName.charAt(0)) + String.valueOf(lastName.charAt(0));
+            textViewInitial.setText(initials);
+            textViewInitial.setVisibility(View.VISIBLE);
+            imageViewProfilePhoto.setImageResource(R.drawable.circular_background);
+        } else {
+            textViewInitial.setVisibility(View.GONE);
         }
-        if (lastName != null && !lastName.isEmpty()) {
-            initial.append(Character.toUpperCase(lastName.charAt(0)));
-        }
-        return initial.toString();
     }
 
     private void chooseImage() {
-        Intent intent = new Intent(Intent.ACTION_PICK);
+        Intent intent = new Intent();
         intent.setType("image/*");
-        startActivityForResult(Intent.createChooser(intent, "Select Picture"), 100);
+        intent.setAction(Intent.ACTION_GET_CONTENT);
+        startActivityForResult(Intent.createChooser(intent, "Select Profile Photo"), 1);
     }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == 100 && resultCode == getActivity().RESULT_OK && data != null && data.getData() != null) {
+
+        if (requestCode == 1 && resultCode == getActivity().RESULT_OK && data != null && data.getData() != null) {
             profileImageUri = data.getData();
-            Glide.with(this)
-                    .load(profileImageUri)
-                    .placeholder(R.drawable.baseline_person_24)
-                    .circleCrop()
-                    .into(imageViewProfilePhoto);
-            textViewInitial.setVisibility(View.GONE);
-        }
-    }
-    private void uploadImage(String userId, String firstName, String lastName, String username, String email) {
-        if (profileImageUri != null) {
-            showCustomProgressDialog();
+            try {
+                Glide.with(requireActivity())
+                        .load(profileImageUri)
+                        .placeholder(R.drawable.baseline_person_24)
+                        .error(R.drawable.baseline_person_24)
+                        .circleCrop()
+                        .into(imageViewProfilePhoto);
 
-            StorageReference userPhotoRef = storageRef.child(userId + ".jpg");
-            userPhotoRef.putFile(profileImageUri).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
-                @Override
-                public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
-                    if (task.isSuccessful()) {
-                        userPhotoRef.getDownloadUrl().addOnCompleteListener(new OnCompleteListener<Uri>() {
-                            @Override
-                            public void onComplete(@NonNull Task<Uri> task) {
-                                if (task.isSuccessful()) {
-                                    String downloadUrl = task.getResult().toString();
-                                    updateUserProfile(userId, firstName, lastName, username, email, downloadUrl);
-                                } else {
-                                    dismissCustomProgressDialog();
-                                    Toast.makeText(getActivity(), "Failed to get download URL", Toast.LENGTH_SHORT).show();
-                                }
-                            }
-                        });
-                    } else {
-                        dismissCustomProgressDialog();
-                        Toast.makeText(getActivity(), "Image upload failed", Toast.LENGTH_SHORT).show();
-                    }
-                }
-            });
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 
-    private void updateUserProfile(String userId, String firstName, String lastName, String username, String email, @Nullable String profilePhotoUrl) {
-        Map<String, Object> userUpdates = new HashMap<>();
-        userUpdates.put("firstName", firstName);
-        userUpdates.put("lastName", lastName);
-        userUpdates.put("username", username);
-        userUpdates.put("email", email);
-        if (profilePhotoUrl != null) {
-            userUpdates.put("profilePhotoUrl", profilePhotoUrl);
-        }
+    private void uploadImage(final String userId, final String firstName, final String lastName, final String username, final String email) {
+        progressDialog.show();
+        buttonSave.setEnabled(false);
+        final StorageReference profileImageRef = storageRef.child(userId + ".jpg");
+        UploadTask uploadTask = profileImageRef.putFile(profileImageUri);
 
-        db.collection(USER_COLLECTION).document(userId).set(userUpdates, SetOptions.merge()).addOnCompleteListener(new OnCompleteListener<Void>() {
+        uploadTask.addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
             @Override
-            public void onComplete(@NonNull Task<Void> task) {
-                dismissCustomProgressDialog();
+            public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
                 if (task.isSuccessful()) {
-                    Toast.makeText(getActivity(), "Profile updated successfully", Toast.LENGTH_SHORT).show();
+                    profileImageRef.getDownloadUrl().addOnCompleteListener(new OnCompleteListener<Uri>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Uri> task) {
+                            if (task.isSuccessful()) {
+                                Uri downloadUri = task.getResult();
+                                saveProfilePhotoUrlToPreferences(downloadUri.toString());  // Save URL to SharedPreferences
+                                updateUserProfile(userId, firstName, lastName, username, email, downloadUri.toString());
+                            } else {
+                                progressDialog.dismiss();
+                                buttonSave.setEnabled(true);
+                                Toast.makeText(getActivity(), "Failed to get download URL", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    });
                 } else {
-                    Toast.makeText(getActivity(), "Profile update failed", Toast.LENGTH_SHORT).show();
+                    progressDialog.dismiss();
+                    buttonSave.setEnabled(true);
+                    Toast.makeText(getActivity(), "Failed to upload profile photo", Toast.LENGTH_SHORT).show();
                 }
             }
         });
     }
 
+    private void updateUserProfile(String userId, String firstName, String lastName, String username, String email, String profilePhotoUrl) {
+        progressDialog.show();
+        buttonSave.setEnabled(false);
+        Map<String, Object> user = new HashMap<>();
+        user.put("firstName", firstName);
+        user.put("lastName", lastName);
+        user.put("username", username);
+        user.put("email", email);
+        if (profilePhotoUrl != null) {
+            user.put("profilePhotoUrl", profilePhotoUrl);
+        }
 
-    public interface OnBackPressedListener {
-        void onBackPressed();
+        db.collection(USER_COLLECTION).document(userId).set(user, SetOptions.merge()).addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                progressDialog.dismiss();
+                buttonSave.setEnabled(true);
+                if (task.isSuccessful()) {
+                    Toast.makeText(getActivity(), "Profile updated successfully", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(getActivity(), "Failed to update profile", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+    }
+
+    private void saveProfilePhotoUrlToPreferences(String profilePhotoUrl) {
+        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString("ProfilePhotoUrl", profilePhotoUrl);
+        editor.apply();
     }
 }
