@@ -94,7 +94,7 @@ public class Profile extends Fragment implements OnBackPressedListener {
     private void showCustomProgressDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(), R.style.CustomProgressDialog);
         LayoutInflater inflater = getActivity().getLayoutInflater();
-        View dialogView = inflater.inflate(R.layout.custom_progress_dialog, null);
+        View dialogView = inflater.inflate(R.layout.custom_progress_upload, null);
         builder.setView(dialogView);
         builder.setCancelable(false);
         progressDialog = builder.create();
