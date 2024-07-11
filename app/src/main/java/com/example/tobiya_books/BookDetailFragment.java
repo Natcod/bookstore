@@ -512,7 +512,7 @@ public class BookDetailFragment extends Fragment {
             purchase.setPurchaseDate(new Timestamp(new Date()));
             purchase.setReader(db.collection("Reader").document(userId));
             purchase.setTransactionId(transactionId); // Set the transaction ID
-            purchase.setApprovalStatus(false); // Set approval status to false
+            purchase.setApprovalStatus("pending"); // Set approval status to "pending"
 
             // Add the purchase to the Purchase table
             db.collection("Purchase")
