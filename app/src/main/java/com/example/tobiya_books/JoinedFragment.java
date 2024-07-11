@@ -15,12 +15,15 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.firebase.Timestamp;
+import com.google.firebase.firestore.DocumentChange;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.firestore.ListenerRegistration;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class JoinedFragment extends Fragment implements GroupAdapter.OnGroupClickListener {
@@ -32,6 +35,8 @@ public class JoinedFragment extends Fragment implements GroupAdapter.OnGroupClic
     private List<Group> groupList = new ArrayList<>();
     private FirebaseFirestore db;
     private TextView tvNoJoinedGroups;
+
+    private ListenerRegistration joinedGroupsListenerRegistration;
 
     public JoinedFragment() {
         // Required empty public constructor
@@ -61,65 +66,41 @@ public class JoinedFragment extends Fragment implements GroupAdapter.OnGroupClic
         if (context != null) {
             String userId = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE).getString("UserID", "defaultUserId");
             Log.d(TAG, "Fetching joined groups for user ID: " + userId);
-            db.collection("BookClubMember")
+            joinedGroupsListenerRegistration = db.collection("BookClubMember")
                     .whereEqualTo("reader", db.collection("Reader").document(userId))
-                    .get()
-                    .addOnCompleteListener(task -> {
-                        if (task.isSuccessful()) {
-                            groupList.clear();
-                            QuerySnapshot querySnapshot = task.getResult();
-                            if (querySnapshot != null) {
-                                Log.d(TAG, "Query snapshot size: " + querySnapshot.size());
-                                List<Group> tempGroupList = new ArrayList<>();
-                                for (QueryDocumentSnapshot document : querySnapshot) {
-                                    DocumentReference bookClubRef = document.getDocumentReference("bookClub");
-                                    if (bookClubRef != null) {
-                                        Log.d(TAG, "Fetching book club document: " + bookClubRef.getId());
-                                        bookClubRef.get().addOnSuccessListener(bookClubDoc -> {
-                                            if (bookClubDoc.exists()) {
-                                                Group group = bookClubDoc.toObject(Group.class);
-                                                group.setId(bookClubDoc.getId());
-                                                tempGroupList.add(group);
-                                                Log.d(TAG, "Group added: " + group.getName());
-                                                // Sort the groups based on joinDate (descending)
-                                                tempGroupList.sort((g1, g2) -> {
-                                                    Timestamp t1 = document.getTimestamp("joinDate");
-                                                    Timestamp t2 = document.getTimestamp("joinDate");
-                                                    if (t1 != null && t2 != null) {
-                                                        return t2.compareTo(t1);
-                                                    }
-                                                    return 0;
-                                                });
-                                                groupList.clear();
-                                                groupList.addAll(tempGroupList);
-                                                groupAdapter.notifyDataSetChanged();
-                                                // Show or hide the TextView based on the list size
-                                                tvNoJoinedGroups.setVisibility(groupList.isEmpty() ? View.VISIBLE : View.GONE);
-                                                Log.d(TAG, "tvNoJoinedGroups visibility set to: " + (groupList.isEmpty() ? "VISIBLE" : "GONE"));
-                                            } else {
-                                                Log.d(TAG, "Book club document does not exist");
-                                            }
-                                        }).addOnFailureListener(e -> {
-                                            Log.e(TAG, "Error fetching book club: ", e);
-                                            Toast.makeText(getContext(), "Error fetching book club: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                                        });
+                    .addSnapshotListener((querySnapshot, e) -> {
+                        if (e != null) {
+                            Log.e(TAG, "Error listening for changes: ", e);
+                            Toast.makeText(getContext(), "Error listening for changes: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                            tvNoJoinedGroups.setVisibility(View.VISIBLE);
+                            return;
+                        }
+
+                        if (querySnapshot != null) {
+                            for (DocumentChange documentChange : querySnapshot.getDocumentChanges()) {
+                                QueryDocumentSnapshot document = documentChange.getDocument();
+                                DocumentReference bookClubRef = document.getDocumentReference("bookClub");
+                                if (bookClubRef != null) {
+                                    switch (documentChange.getType()) {
+                                        case ADDED:
+                                            handleDocumentAdded(bookClubRef, document);
+                                            break;
+                                        case MODIFIED:
+                                            handleDocumentModified(bookClubRef, document);
+                                            break;
+                                        case REMOVED:
+                                            handleDocumentRemoved(bookClubRef);
+                                            break;
                                     }
                                 }
-                                // Update visibility outside the loop
-                                tvNoJoinedGroups.setVisibility(groupList.isEmpty() ? View.VISIBLE : View.GONE);
-                                Log.d(TAG, "tvNoJoinedGroups visibility set to: " + (groupList.isEmpty() ? "VISIBLE" : "GONE"));
-                            } else {
-                                Log.d(TAG, "Query snapshot is null");
-                                // Show the TextView if the snapshot is null
-                                tvNoJoinedGroups.setVisibility(View.VISIBLE);
-                                Log.d(TAG, "tvNoJoinedGroups visibility set to VISIBLE due to null query snapshot");
                             }
                         } else {
-                            Log.e(TAG, "Error getting joined groups: ", task.getException());
-                            Toast.makeText(getContext(), "Error getting joined groups: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
-                            // Show the TextView in case of an error
+                            Log.d(TAG, "Query snapshot is null or empty");
+                            // Show the TextView if there are no joined groups
+                            groupList.clear();
+                            groupAdapter.notifyDataSetChanged();
                             tvNoJoinedGroups.setVisibility(View.VISIBLE);
-                            Log.d(TAG, "tvNoJoinedGroups visibility set to VISIBLE due to error");
+                            Log.d(TAG, "tvNoJoinedGroups visibility set to VISIBLE due to empty query snapshot");
                         }
                     });
         } else {
@@ -127,6 +108,98 @@ public class JoinedFragment extends Fragment implements GroupAdapter.OnGroupClic
             // Show the TextView if the context is null
             tvNoJoinedGroups.setVisibility(View.VISIBLE);
             Log.d(TAG, "tvNoJoinedGroups visibility set to VISIBLE due to null context");
+        }
+    }
+
+    private void handleDocumentAdded(DocumentReference bookClubRef, QueryDocumentSnapshot document) {
+        bookClubRef.get().addOnSuccessListener(bookClubDoc -> {
+            if (bookClubDoc.exists()) {
+                Group group = bookClubDoc.toObject(Group.class);
+                group.setId(bookClubDoc.getId());
+
+                // Check if joinDate is null and handle accordingly
+                Timestamp joinTimestamp = document.getTimestamp("joinDate");
+                if (joinTimestamp != null) {
+                    group.setJoinDate(joinTimestamp.toDate());
+                } else {
+                    group.setJoinDate(new Date(0)); // Set a default date if joinDate is null
+                }
+
+                groupList.add(group);
+                updateGroupList();
+            } else {
+                Log.d(TAG, "Book club document does not exist");
+            }
+        }).addOnFailureListener(e1 -> {
+            Log.e(TAG, "Error fetching book club: ", e1);
+            Toast.makeText(getContext(), "Error fetching book club: " + e1.getMessage(), Toast.LENGTH_SHORT).show();
+        });
+    }
+
+    private void handleDocumentModified(DocumentReference bookClubRef, QueryDocumentSnapshot document) {
+        bookClubRef.get().addOnSuccessListener(bookClubDoc -> {
+            if (bookClubDoc.exists()) {
+                Group group = bookClubDoc.toObject(Group.class);
+                group.setId(bookClubDoc.getId());
+
+                // Check if joinDate is null and handle accordingly
+                Timestamp joinTimestamp = document.getTimestamp("joinDate");
+                if (joinTimestamp != null) {
+                    group.setJoinDate(joinTimestamp.toDate());
+                } else {
+                    group.setJoinDate(new Date(0)); // Set a default date if joinDate is null
+                }
+
+                for (int i = 0; i < groupList.size(); i++) {
+                    if (groupList.get(i).getId().equals(group.getId())) {
+                        groupList.set(i, group);
+                        break;
+                    }
+                }
+                updateGroupList();
+            } else {
+                Log.d(TAG, "Book club document does not exist");
+            }
+        }).addOnFailureListener(e1 -> {
+            Log.e(TAG, "Error fetching book club: ", e1);
+            Toast.makeText(getContext(), "Error fetching book club: " + e1.getMessage(), Toast.LENGTH_SHORT).show();
+        });
+    }
+
+    private void handleDocumentRemoved(DocumentReference bookClubRef) {
+        for (int i = 0; i < groupList.size(); i++) {
+            if (groupList.get(i).getId().equals(bookClubRef.getId())) {
+                groupList.remove(i);
+                break;
+            }
+        }
+        updateGroupList();
+    }
+
+    private void updateGroupList() {
+        // Sort the groups based on joinDate (descending)
+        groupList.sort((g1, g2) -> {
+            Date t1 = g1.getJoinDate();
+            Date t2 = g2.getJoinDate();
+            if (t1 != null && t2 != null) {
+                return t2.compareTo(t1);
+            }
+            return 0;
+        });
+
+        groupAdapter.notifyDataSetChanged();
+
+        // Show or hide the TextView based on the list size
+        tvNoJoinedGroups.setVisibility(groupList.isEmpty() ? View.VISIBLE : View.GONE);
+        Log.d(TAG, "tvNoJoinedGroups visibility set to: " + (groupList.isEmpty() ? "VISIBLE" : "GONE"));
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if (joinedGroupsListenerRegistration != null) {
+            joinedGroupsListenerRegistration.remove();
+            joinedGroupsListenerRegistration = null;
         }
     }
 
