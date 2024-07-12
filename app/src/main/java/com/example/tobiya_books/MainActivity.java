@@ -117,13 +117,20 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private ImageView imageViewProfilePhoto;
     private TextView textViewInitial;
 
+    private SubscriptionManager subscriptionManager;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Log.d("MainActivity", "onCreate called");
+
         initializeUI();
+
+        subscriptionManager = new SubscriptionManager(this);
+        // Fetch subscription prices from Firestore
+        fetchSubscriptionPrices();
+
         // Handle incoming intent
         Intent intent = getIntent();
         if (intent != null) {
@@ -647,10 +654,16 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                             Double weeklyPrice = document.getDouble("weeklyPrice");
                             Double monthlyPrice = document.getDouble("monthlyPrice");
                             Double yearlyPrice = document.getDouble("yearlyPrice");
+                            Double dailyNumberBook= document.getDouble("dailyNumberBook");
+                            Double weeklyNumberBook= document.getDouble("weeklyNumberBook");
+                            Double monthlyNumberBook= document.getDouble("monthlyNumberBook");
+                            Double yearlyNumberBook= document.getDouble("yearlyNumberBook");
+
 
                             if (dailyPrice != null && weeklyPrice != null && monthlyPrice != null && yearlyPrice != null) {
                                 // Update subscription prices
-                                updateSubscriptionPrices(dailyPrice, weeklyPrice, monthlyPrice, yearlyPrice);
+                                updateSubscriptionPrices(dailyPrice, weeklyPrice, monthlyPrice, yearlyPrice,dailyNumberBook,weeklyNumberBook,monthlyNumberBook,yearlyNumberBook);
+                                subscriptionManager.updateSubscriptionPrices( dailyNumberBook, weeklyNumberBook, monthlyNumberBook, yearlyNumberBook);
                             } else {
                                 Log.d(TAG, "One or more subscription prices are null");
                             }
@@ -664,20 +677,28 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     // Update the subscription prices in the bottom sheet dialog
-    private void updateSubscriptionPrices(double dailyPrice, double weeklyPrice, double monthlyPrice, double yearlyPrice) {
+    private void updateSubscriptionPrices(double dailyPrice, double weeklyPrice, double monthlyPrice, double yearlyPrice, double dailyNumberBook, double weeklyNumberBook, double monthlyNumberBook, double yearlyNumberBook) {
+        // Assuming dialog is properly initialized before calling this method
+        if (dialog == null) {
+            Log.e(TAG, "Dialog is null. Ensure it is properly initialized.");
+            return;
+        }
+
         RadioButton dailyRadioButton = dialog.findViewById(R.id.radioButton_daily);
         RadioButton weeklyRadioButton = dialog.findViewById(R.id.radioButton_weekly);
         RadioButton monthlyRadioButton = dialog.findViewById(R.id.radioButton_monthly);
         RadioButton yearlyRadioButton = dialog.findViewById(R.id.radioButton_yearly);
+
         if (dailyRadioButton != null && weeklyRadioButton != null && monthlyRadioButton != null && yearlyRadioButton != null) {
-            dailyRadioButton.setText(String.format("Daily - %.2f ETB", dailyPrice));
-            weeklyRadioButton.setText(String.format("Weekly - %.2f ETB", weeklyPrice));
-            monthlyRadioButton.setText(String.format("Monthly - %.2f ETB", monthlyPrice));
-            yearlyRadioButton.setText(String.format("Yearly - %.2f ETB", yearlyPrice));
+            dailyRadioButton.setText(String.format("Daily - %.2f ETB With %.0f Books", dailyPrice, dailyNumberBook));
+            weeklyRadioButton.setText(String.format("Weekly - %.2f ETB With %.0f Books", weeklyPrice, weeklyNumberBook));
+            monthlyRadioButton.setText(String.format("Monthly - %.2f ETB With %.0f Books", monthlyPrice, monthlyNumberBook));
+            yearlyRadioButton.setText(String.format("Yearly - %.2f ETB With %.0f Books", yearlyPrice, yearlyNumberBook));
         } else {
             Log.e(TAG, "One or more radio buttons are null");
         }
     }
+
 
     // Show the bottom sheet dialog and fetch subscription prices
     public void showBottomDialog() {
@@ -799,7 +820,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             subscriptionData.put("reader", FirebaseFirestore.getInstance().document("Reader/" + userID));
             subscriptionData.put("type", type);
             subscriptionData.put("transactionId", transactionId); // Add transaction ID
-            subscriptionData.put("approvalStatus", false); // Set approval status to false
+            subscriptionData.put("approvalStatus", "pending"); // Set approval status to pending
 
             // Get reference to the Subscription collection
             CollectionReference subscriptionsRef = FirebaseFirestore.getInstance().collection("Subscription");
@@ -808,9 +829,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             subscriptionsRef.add(subscriptionData)
                     .addOnSuccessListener(documentReference -> {
                         Log.d(TAG, "Subscription added with ID: " + documentReference.getId());
-                        Toast.makeText(MainActivity.this, "Subscription added successfully, After approval, your book will be ready. Happy reading!", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(MainActivity.this, "Subscription added successfully. After approval, your book will be ready. Happy reading!", Toast.LENGTH_SHORT).show();
                         hideTransactionIdInputField();
                         resetRadioButtons();
+
+                        // Update the subscription type and ID in SharedPreferences
+                        SubscriptionManager subscriptionManager = new SubscriptionManager(MainActivity.this);
+                        subscriptionManager.updateSubscriptionType(type, documentReference.getId());
+                        Log.d(TAG, "Subscription type and ID updated in SharedPreferences: " + type + ", " + documentReference.getId());
                     })
                     .addOnFailureListener(e -> {
                         Log.e(TAG, "Error adding subscription", e);
@@ -821,6 +847,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             Toast.makeText(MainActivity.this, "Failed to add subscription: UserID is empty", Toast.LENGTH_SHORT).show();
         }
     }
+
+
 
 
     // Calculate the end date of the subscription based on the start date and subscription type
