@@ -10,6 +10,7 @@ public class Purchase {
     private DocumentReference reader;
     private String transactionId;
     private String approvalStatus;
+    private String accessType; // New field for accessType
 
     public Purchase() {
         // Default constructor required for Firestore
@@ -61,5 +62,13 @@ public class Purchase {
 
     public void setApprovalStatus(String approvalStatus) {
         this.approvalStatus = approvalStatus;
+    }
+
+    public String getAccessType() {
+        return accessType;
+    }
+
+    public void setAccessType(String accessType) {
+        this.accessType = accessType;
     }
 }

@@ -512,6 +512,7 @@ public class BookDetailFragment extends Fragment {
                         if (documentSnapshot.exists()) {
                             // Get the price from the document
                             Double price = documentSnapshot.getDouble("price");
+                            String accessType = documentSnapshot.getString("accessType");
 
                             if (price != null) {
                                 // Create a new Purchase object
@@ -522,6 +523,7 @@ public class BookDetailFragment extends Fragment {
                                 purchase.setReader(db.collection("Reader").document(userId));
                                 purchase.setTransactionId(transactionId); // Set the transaction ID
                                 purchase.setApprovalStatus("pending"); // Set approval status to "pending"
+                                purchase.setAccessType(accessType);
 
                                 // Add the purchase to the Purchase collection
                                 db.collection("Purchase")
