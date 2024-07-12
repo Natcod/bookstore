@@ -11,6 +11,7 @@ public class Purchase {
     private String transactionId;
     private String approvalStatus;
     private String accessType; // New field for accessType
+    private Timestamp endDate; // New field for end date
 
     public Purchase() {
         // Default constructor required for Firestore
@@ -70,5 +71,13 @@ public class Purchase {
 
     public void setAccessType(String accessType) {
         this.accessType = accessType;
+    }
+
+    public Timestamp getEndDate() {
+        return endDate;
+    }
+
+    public void setEndDate(Timestamp endDate) {
+        this.endDate = endDate;
     }
 }

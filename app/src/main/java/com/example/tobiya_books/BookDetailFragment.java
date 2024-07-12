@@ -269,7 +269,7 @@ public class BookDetailFragment extends Fragment {
                     .addOnCompleteListener(task -> {
                         if (task.isSuccessful() && !task.getResult().isEmpty()) {
                             // Book is already in the user's library
-                            buyNowButton.setText("Already Added to Library");
+                            buyNowButton.setText("Already Added to Library, Open");
                             buyNowButton.setOnClickListener(v -> openLibraryFragment());
                         } else {
                             // Book is not in the user's library
@@ -291,7 +291,7 @@ public class BookDetailFragment extends Fragment {
             switch (accessType) {
                 case "Free":
                     buyNowButton.setText("Add to Library");
-                    buyNowButton.setOnClickListener(v -> addPurchaseToDatabase(null)); // For free, no transaction ID
+                    buyNowButton.setOnClickListener(v -> addPurchaseToDatabase(null, null)); // For free, no transaction ID
                     break;
                 case "Paid":
                     buyNowButton.setText("Buy Now");
@@ -328,7 +328,7 @@ public class BookDetailFragment extends Fragment {
 
                             if (endDate != null && endDate.toDate().after(new Date())) {
                                 // Subscription is valid
-                                addPurchaseToDatabase(null); // For subscription, no transaction ID
+                                addPurchaseToDatabase(null, endDate.toDate()); // For subscription, no transaction ID
                             } else {
                                 // Subscription has expired
                                 showSubscriptionDialog();
@@ -470,7 +470,7 @@ public class BookDetailFragment extends Fragment {
                     String transactionId = transactionIdEditText.getText().toString().trim();
                     if (!transactionId.isEmpty()) {
                         // Proceed with adding purchase to database with the transaction ID
-                        addPurchaseToDatabase(transactionId);
+                        addPurchaseToDatabase(transactionId,null);
                     } else {
                         Toast.makeText(getContext(), "Transaction ID cannot be empty", Toast.LENGTH_SHORT).show();
                     }
@@ -500,7 +500,7 @@ public class BookDetailFragment extends Fragment {
         }
     }
 
-    private void addPurchaseToDatabase(String transactionId) {
+    private void addPurchaseToDatabase(String transactionId, Date endDate) {
         // Retrieve the user ID from shared preferences
         SharedPreferences sharedPreferences = getActivity().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
         String userId = sharedPreferences.getString("UserID", null);
@@ -524,6 +524,9 @@ public class BookDetailFragment extends Fragment {
                                 purchase.setTransactionId(transactionId); // Set the transaction ID
                                 purchase.setApprovalStatus("pending"); // Set approval status to "pending"
                                 purchase.setAccessType(accessType);
+                                if (endDate != null) {
+                                    purchase.setEndDate(new Timestamp(endDate)); // Set the end date for subscriptions
+                                }
 
                                 // Add the purchase to the Purchase collection
                                 db.collection("Purchase")
