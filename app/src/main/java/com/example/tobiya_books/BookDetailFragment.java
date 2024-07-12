@@ -114,7 +114,7 @@ public class BookDetailFragment extends Fragment {
 
         // Initialize Firestore
         db = FirebaseFirestore.getInstance();
-
+//        subscriptionManager = new SubscriptionManager(getActivity());
         // Initialize views
         coverImageView = view.findViewById(R.id.detail_cover_image);
         titleTextView = view.findViewById(R.id.detail_title);
@@ -219,7 +219,6 @@ public class BookDetailFragment extends Fragment {
             }
         });
     }
-
     private void setBookDetails(Book book) {
         titleTextView.setText("Title : " + book.getTitle());
         authorTextView.setText("Author : " + book.getAuthor());
@@ -249,41 +248,6 @@ public class BookDetailFragment extends Fragment {
             getActivity().getSupportFragmentManager().popBackStack();
         });
     }
-
-
-    private void checkIfBookInLibrary(String fileURL, String accessType) {
-        // Retrieve the user ID from shared preferences
-        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
-        String userId = sharedPreferences.getString("UserID", null);
-
-        if (userId != null) {
-            // Reference to your "Purchase" collection
-            CollectionReference purchaseCollection = db.collection("Purchase");
-
-            // Query to check if the user already purchased the book
-            purchaseCollection
-                    .whereEqualTo("reader", db.collection("Reader").document(userId))
-                    .whereEqualTo("ebook", db.document("Ebook/" + documentId))
-                    .get()
-                    .addOnCompleteListener(task -> {
-                        if (task.isSuccessful() && !task.getResult().isEmpty()) {
-                            // Book is already in the user's library
-                            buyNowButton.setText("Already Added to Library");
-                            buyNowButton.setOnClickListener(v -> openLibraryFragment());
-                        } else {
-                            // Book is not in the user's library
-                            setBuyNowButtonClickListener(accessType);
-                        }
-                    })
-                    .addOnFailureListener(e -> {
-                        Log.e(TAG, "Error checking purchase", e);
-                        setBuyNowButtonClickListener(accessType);
-                    });
-        } else {
-            Toast.makeText(getContext(), "User ID is null", Toast.LENGTH_SHORT).show();
-        }
-    }
-
     private void setBuyNowButtonClickListener(String accessType) {
         // Set button label and click listener based on access type
         if (accessType != null) {
@@ -307,49 +271,142 @@ public class BookDetailFragment extends Fragment {
         }
     }
 
+    private void checkIfBookInLibrary(String fileURL, String accessType) {
+        // Retrieve the user ID from shared preferences
+        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
+        String userId = sharedPreferences.getString("UserID", null);
+
+        if (userId != null) {
+            // Reference to your "Purchase" collection
+            CollectionReference purchaseCollection = db.collection("Purchase");
+
+            // Query to check if the user already purchased the book
+            purchaseCollection
+                    .whereEqualTo("reader", db.collection("Reader").document(userId))
+                    .whereEqualTo("ebook", db.document("Ebook/" + documentId))
+                    .limit(1) // Limit the query to 1 result for faster response
+                    .get()
+                    .addOnCompleteListener(task -> {
+                        if (task.isSuccessful() && !task.getResult().isEmpty()) {
+                            // Book is already in the user's library
+                            buyNowButton.setText("Already Added to Library");
+                            buyNowButton.setOnClickListener(v -> openLibraryFragment());
+                        } else {
+                            // Book is not in the user's library
+                            setBuyNowButtonClickListener(accessType);
+                        }
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.e(TAG, "Error checking purchase", e);
+                        setBuyNowButtonClickListener(accessType);
+                    });
+        } else {
+            Toast.makeText(getContext(), "User ID is null", Toast.LENGTH_SHORT).show();
+        }
+    }
     private void checkSubscriptionAndAddToLibrary() {
         // Retrieve the user ID from shared preferences
         SharedPreferences sharedPreferences = getActivity().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
         String userId = sharedPreferences.getString("UserID", null);
 
         if (userId != null) {
-            // Reference to your "Subscription" collection
-            CollectionReference subscriptionCollection = db.collection("Subscription");
+            // Use SubscriptionRepository to check subscription status
+            SubscriptionRepository subscriptionRepository = new SubscriptionRepository();
+            subscriptionRepository.isReaderSubscribed(userId, isSubscribed -> {
+                if (isSubscribed) {
+                    // Subscription is valid, proceed with adding to library
+                    CollectionReference subscriptionCollection = db.collection("Subscription");
 
-            // Perform a query to get the subscription document for the user
-            subscriptionCollection
-                    .whereEqualTo("reader", db.collection("Reader").document(userId))
-                    .get()
-                    .addOnCompleteListener(task -> {
-                        if (task.isSuccessful() && !task.getResult().isEmpty()) {
-                            DocumentSnapshot document = task.getResult().getDocuments().get(0);
-                            Timestamp endDate = document.getTimestamp("endDate");
+                    // Perform a query to get the subscription documents for the user
+                    subscriptionCollection
+                            .whereEqualTo("reader", db.document("Reader/" + userId))
+                            .get()
+                            .addOnCompleteListener(subscriptionTask -> {
+                                if (subscriptionTask.isSuccessful() && !subscriptionTask.getResult().isEmpty()) {
+                                    boolean foundApproved = false;
+                                    boolean foundPending = false;
+                                    for (DocumentSnapshot subscriptionDocument : subscriptionTask.getResult().getDocuments()) {
+                                        String approvalStatus = subscriptionDocument.getString("approvalStatus");
+                                        Timestamp endDate = subscriptionDocument.getTimestamp("endDate");
+                                        String type = subscriptionDocument.getString("type");
+                                        String subscriptionId = subscriptionDocument.getId();
 
-                            if (endDate != null && endDate.toDate().after(new Date())) {
-                                // Subscription is valid
-                                addPurchaseToDatabase(null); // For subscription, no transaction ID
-                            } else {
-                                // Subscription has expired
-                                showSubscriptionDialog();
-                            }
-                        } else {
-                            // No subscription found or error
-                            showSubscriptionDialog();
-                        }
-                    })
-                    .addOnFailureListener(e -> {
-                        Log.e(TAG, "Error checking subscription", e);
-                        showSubscriptionDialog();
-                    });
+                                        if ("approved".equals(approvalStatus) && endDate != null && endDate.toDate().after(new Date()) && type != null && !type.isEmpty()) {
+                                            foundApproved = true;
+                                            SubscriptionManager subscriptionManager = new SubscriptionManager(getContext());
+                                            subscriptionManager.updateSubscriptionType(type, subscriptionId);
+
+                                            if (subscriptionManager.canAddBook(endDate.toDate())) {
+                                                // Replace "book_id" with the actual book ID you are about to add
+                                                String documentId = "book_id"; // Get the actual book ID here
+                                                subscriptionManager.addBookToLibrary(documentId);
+                                                addPurchaseToDatabase(null); // For subscription, no transaction ID
+
+                                            } else {
+                                                Log.e(TAG, "Book limit reached or subscription expired");
+                                                updateApprovalStatus(subscriptionId, "rejected"); // Update status to "rejected"
+                                                showSubscriptionDialog("limit_reached");
+                                            }
+                                            break; // Exit the loop once an approved subscription is processed
+                                        } else if ("pending".equals(approvalStatus)) {
+                                            foundPending = true;
+                                        }
+                                    }
+
+                                    if (!foundApproved) {
+                                        if (foundPending) {
+                                            showSubscriptionDialog("pending");
+                                        } else {
+                                            showSubscriptionDialog(null);
+                                        }
+                                    }
+                                } else {
+                                    // No subscription found or error
+                                    showSubscriptionDialog(null);
+                                }
+                            })
+                            .addOnFailureListener(e -> {
+                                Log.e(TAG, "Error checking subscription", e);
+                                showSubscriptionDialog(null);
+                            });
+                } else {
+                    // No valid subscription found
+                    showSubscriptionDialog(null);
+                }
+            });
         } else {
             Toast.makeText(getContext(), "User ID is null", Toast.LENGTH_SHORT).show();
         }
     }
+    private void updateApprovalStatus(String subscriptionId, String newStatus) {
+        if (subscriptionId != null && !subscriptionId.isEmpty()) {
+            DocumentReference subscriptionRef = db.collection("Subscription").document(subscriptionId);
+            subscriptionRef.update("approvalStatus", newStatus)
+                    .addOnSuccessListener(aVoid -> Log.d(TAG, "Subscription status updated to " + newStatus))
+                    .addOnFailureListener(e -> Log.e(TAG, "Error updating subscription status", e));
+        }
+    }
+    private void showSubscriptionDialog(String approvalStatus) {
+        String message;
+        if ("pending".equals(approvalStatus)) {
+            message = "Your subscription is pending approval.";
+            Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
+            return; // Do not show the bottom sheet if subscription is pending
+        } else if ("rejected".equals(approvalStatus)) {
+            message = "Your subscription has been rejected.";
+        } else if ("approved".equals(approvalStatus)) {
+            message = "Your subscription is expired. Please renew to access this book.";
+        } else if ("limit_reached".equals(approvalStatus)) {
+            message = "Book limit reached for your subscription type. Please renew to access this book.";
+        } else {
+            message = "Please subscribe to access this book.";
+        }
 
-    private void showSubscriptionDialog() {
-        Toast.makeText(getContext(), "Please subscribe to access this book.", Toast.LENGTH_SHORT).show();
+        Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
         ((MainActivity) requireActivity()).showBottomDialog();
     }
+
+
 
     private void retrieveDocumentId(String fileURL) {
         // Reference to your "Ebook" collection
@@ -385,7 +442,6 @@ public class BookDetailFragment extends Fragment {
                     }
                 });
     }
-
     private void openPaymentOptionDialog() {
         // Create an AlertDialog builder with the custom style
         AlertDialog.Builder builder = new AlertDialog.Builder(requireContext(), R.style.AlertDialogCustomStyle);
@@ -437,7 +493,6 @@ public class BookDetailFragment extends Fragment {
             neutralButton.setTextColor(buttonTextColor);
         }
     }
-
     private void showTransactionIdDialog() {
         // Create an AlertDialog builder with the custom style
         AlertDialog.Builder builder = new AlertDialog.Builder(requireContext(), R.style.AlertDialogCustomStyle);
@@ -499,6 +554,7 @@ public class BookDetailFragment extends Fragment {
         }
     }
 
+
     private void addPurchaseToDatabase(String transactionId) {
         // Retrieve the user ID from shared preferences
         SharedPreferences sharedPreferences = getActivity().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
@@ -514,12 +570,14 @@ public class BookDetailFragment extends Fragment {
             purchase.setTransactionId(transactionId); // Set the transaction ID
             purchase.setApprovalStatus("pending"); // Set approval status to "pending"
 
-            // Add the purchase to the Purchase table
+            // Add the purchase to the Purchase collection
             db.collection("Purchase")
                     .add(purchase)
                     .addOnSuccessListener(documentReference -> {
                         // Purchase added successfully
                         Toast.makeText(getContext(), "Purchase added to library pending approval!", Toast.LENGTH_SHORT).show();
+                        buyNowButton.setText("Already Added to Library, Open");
+                        buyNowButton.setOnClickListener(v -> openLibraryFragment());
                     })
                     .addOnFailureListener(e -> {
                         // Error adding purchase
@@ -531,8 +589,6 @@ public class BookDetailFragment extends Fragment {
             Toast.makeText(getContext(), "User ID or Document ID is null", Toast.LENGTH_SHORT).show();
         }
     }
-
-
 
     private void openLibraryFragment() {
 
