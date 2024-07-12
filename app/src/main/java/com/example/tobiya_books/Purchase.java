@@ -5,7 +5,7 @@ import com.google.firebase.firestore.DocumentReference;
 
 public class Purchase {
     private DocumentReference ebook;
-    private int price;
+    private Double price;
     private Timestamp purchaseDate;
     private DocumentReference reader;
     private String transactionId;
@@ -23,11 +23,11 @@ public class Purchase {
         this.ebook = ebook;
     }
 
-    public int getPrice() {
+    public Double getPrice() {
         return price;
     }
 
-    public void setPrice(int price) {
+    public void setPrice(Double price) {
         this.price = price;
     }
 
