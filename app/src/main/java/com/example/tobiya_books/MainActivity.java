@@ -81,7 +81,7 @@ import android.Manifest;
 
 import androidx.lifecycle.ViewModelProvider;
 
-public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, BooksAdapter.OnBookClickListener, BookDetailFragment.MainActivityListener {
+public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, BooksAdapter.OnBookClickListener{
 
     private DrawerLayout drawerLayout;
     private BottomNavigationView bottomNavigationView;
@@ -449,8 +449,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         return true;
     }
-
-
     private void setupSearchView() {
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
@@ -616,15 +614,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             }
         }
     }
-
-
-    public void addPurchaseToDatabase() {
-        // Implement the method to add purchase to the database
-        // You can put the implementation here or call another method that handles this
-        // For example:
-        // db.collection("Purchase").add(purchase)...
-    }
-
     @Override
     public void onBookClick(Book book) {
         // Open BookDetailFragment with the clicked book's details
@@ -698,8 +687,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             Log.e(TAG, "One or more radio buttons are null");
         }
     }
-
-
     // Show the bottom sheet dialog and fetch subscription prices
     public void showBottomDialog() {
         dialog = new Dialog(this);
