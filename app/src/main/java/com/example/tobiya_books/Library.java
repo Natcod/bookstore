@@ -10,6 +10,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.Toolbar;
@@ -22,6 +23,7 @@ import com.google.android.gms.tasks.Task;
 import com.google.android.material.bottomappbar.BottomAppBar;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -29,6 +31,7 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import timber.log.Timber;
@@ -124,7 +127,6 @@ public class Library extends Fragment implements PurchaseAdapter.OnRemoveClickLi
         SharedPreferences sharedPreferences = getContext().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
         return sharedPreferences.getString("UserID", null);
     }
-
     private void fetchDataAndDisplay(View view) {
         // Clear the books list to prevent duplication
         books.clear();
@@ -132,28 +134,85 @@ public class Library extends Fragment implements PurchaseAdapter.OnRemoveClickLi
         db.collection("Purchase")
                 .whereEqualTo("reader", db.document("Reader/" + currentUserId))
                 .get()
-                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                        if (task.isSuccessful()) {
-                            for (QueryDocumentSnapshot document : task.getResult()) {
-                                DocumentReference ebookRef = document.getDocumentReference("ebook");
-                                if (ebookRef != null) {
-                                    String documentId = document.getId();
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        for (QueryDocumentSnapshot document : task.getResult()) {
+                            DocumentReference ebookRef = document.getDocumentReference("ebook");
+                            String approvalStatus = document.getString("approvalStatus");
+                            String accessType = document.getString("accessType");
+                            String documentId = document.getId();
+
+                            if ("Free".equals(accessType)) {
+                                // Fetch book details directly if accessType is Free
+                                fetchBookDetails(ebookRef, documentId, view);
+                            } else if ("approved".equals(approvalStatus)) {
+                                if ("Paid".equals(accessType)) {
+                                    // Fetch book details directly if accessType is Paid
                                     fetchBookDetails(ebookRef, documentId, view);
+                                } else if ("Subscription".equals(accessType)) {
+                                    // Check subscription status if accessType is subscription
+                                    checkSubscriptionAndFetchBook(ebookRef, documentId, view);
+                                } else {
+                                    // Display a toast message for other cases
+                                    Toast.makeText(view.getContext(), "There is no approved Payment based Book", Toast.LENGTH_SHORT).show();
                                 }
+                            } else {
+                                // Display a toast message for non-approved books
+                                    Toast.makeText(view.getContext(), "There is no approved book", Toast.LENGTH_SHORT).show();
                             }
-                            // Check if books list is empty
-                            if (books.isEmpty()) {
-                                showEmptyLibraryMessage(view);
-                            }
-                        } else {
-                            Log.w("LibraryFragment", "Error getting documents: ", task.getException());
                         }
+                        // Check if books list is empty
+                        if (books.isEmpty()) {
+                            showEmptyLibraryMessage(view);
+                        }
+                    } else {
+                        Log.w("LibraryFragment", "Error getting documents: ", task.getException());
                     }
                 });
     }
+    private void checkSubscriptionAndFetchBook(DocumentReference ebookRef, String documentId, View view) {
+        db.collection("Purchase").document(documentId)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    String approvalStatus = documentSnapshot.getString("approvalStatus");
+                    Timestamp endDate = documentSnapshot.getTimestamp("endDate");
 
+                    Log.d("LibraryFragment", "Approval status: " + approvalStatus);
+                    if ("approved".equals(approvalStatus)) {
+                        if (endDate != null) {
+                            Date endDateDate = endDate.toDate();
+                            Date currentDate = new Date();
+                            Log.d("LibraryFragment", "End date: " + endDateDate);
+                            Log.d("LibraryFragment", "Current date: " + currentDate);
+
+                            if (endDateDate.before(currentDate)) {
+                                // Subscription has expired
+                                documentSnapshot.getReference().update("approvalStatus", "expired")
+                                        .addOnSuccessListener(aVoid -> {
+                                            Log.d("LibraryFragment", "Purchase approval status updated to 'expired' successfully.");
+                                            Toast.makeText(view.getContext(), "Subscription has expired", Toast.LENGTH_SHORT).show();
+                                        })
+                                        .addOnFailureListener(e -> {
+                                            Log.e("LibraryFragment", "Failed to update purchase approval status to 'expired'.", e);
+                                            Toast.makeText(view.getContext(), "Failed to update subscription status", Toast.LENGTH_SHORT).show();
+                                        });
+                            } else {
+                                // Subscription is still valid, fetch book details
+                                fetchBookDetails(ebookRef, documentId, view);
+                            }
+                        } else {
+                            Log.e("LibraryFragment", "End date is null.");
+                            Toast.makeText(view.getContext(), "Failed to retrieve subscription end date.", Toast.LENGTH_SHORT).show();
+                        }
+                    } else {
+                        Toast.makeText(view.getContext(), "There is no approved Subscription-based book", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("LibraryFragment", "Failed to fetch purchase document: " + documentId, e);
+                    Toast.makeText(view.getContext(), "Failed to fetch purchase details", Toast.LENGTH_SHORT).show();
+                });
+    }
     private void showEmptyLibraryMessage(View view) {
         // Assuming you have a TextView in your fragment_library.xml with id empty_library_message
         TextView emptyLibraryMessage = view.findViewById(R.id.empty_library_message);
@@ -161,7 +220,6 @@ public class Library extends Fragment implements PurchaseAdapter.OnRemoveClickLi
             emptyLibraryMessage.setVisibility(View.VISIBLE);
         }
     }
-
     private void fetchBookDetails(DocumentReference ebookRef, String documentId, View view) {
         ebookRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
@@ -185,7 +243,6 @@ public class Library extends Fragment implements PurchaseAdapter.OnRemoveClickLi
             }
         });
     }
-
     // Method to remove a book from the database
     private void removeBookFromDatabase(String documentId) {
         db.collection("Purchase").document(documentId)
@@ -206,7 +263,6 @@ public class Library extends Fragment implements PurchaseAdapter.OnRemoveClickLi
                     }
                 });
     }
-
     // Method to find the position of the book in the list based on its document ID
     private int findBookPositionById(String documentId) {
         for (int i = 0; i < books.size(); i++) {
@@ -217,7 +273,6 @@ public class Library extends Fragment implements PurchaseAdapter.OnRemoveClickLi
         }
         return -1; // Book not found
     }
-
     // Method to handle remove button click in the adapter
     @Override
     public void onRemoveClick(int position) {
