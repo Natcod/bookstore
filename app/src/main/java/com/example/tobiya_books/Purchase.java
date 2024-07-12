@@ -5,9 +5,13 @@ import com.google.firebase.firestore.DocumentReference;
 
 public class Purchase {
     private DocumentReference ebook;
-    private int price;
+    private Double price;
     private Timestamp purchaseDate;
     private DocumentReference reader;
+    private String transactionId;
+    private String approvalStatus;
+    private String accessType; // New field for accessType
+    private Timestamp endDate; // New field for end date
 
     public Purchase() {
         // Default constructor required for Firestore
@@ -21,11 +25,11 @@ public class Purchase {
         this.ebook = ebook;
     }
 
-    public int getPrice() {
+    public Double getPrice() {
         return price;
     }
 
-    public void setPrice(int price) {
+    public void setPrice(Double price) {
         this.price = price;
     }
 
@@ -43,5 +47,37 @@ public class Purchase {
 
     public void setReader(DocumentReference reader) {
         this.reader = reader;
+    }
+
+    public String getTransactionId() {
+        return transactionId;
+    }
+
+    public void setTransactionId(String transactionId) {
+        this.transactionId = transactionId;
+    }
+
+    public String getApprovalStatus() {
+        return approvalStatus;
+    }
+
+    public void setApprovalStatus(String approvalStatus) {
+        this.approvalStatus = approvalStatus;
+    }
+
+    public String getAccessType() {
+        return accessType;
+    }
+
+    public void setAccessType(String accessType) {
+        this.accessType = accessType;
+    }
+
+    public Timestamp getEndDate() {
+        return endDate;
+    }
+
+    public void setEndDate(Timestamp endDate) {
+        this.endDate = endDate;
     }
 }

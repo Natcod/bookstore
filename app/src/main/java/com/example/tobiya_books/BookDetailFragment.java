@@ -12,6 +12,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -63,11 +64,12 @@ public class BookDetailFragment extends Fragment {
     private String documentId;
 
     private FirebaseFirestore db;
-    static int PRICE;
+    static Double PRICE;
+    private SubscriptionManager subscriptionManager;
 
     public static BookDetailFragment newInstance(String title, String author, String description, String publicationDate,
                                                  String coverImageUrl, String language, double price, String accessType, String fileURL, String uploadDate) {
-        PRICE = (int) price;
+        PRICE = (Double) price;
         BookDetailFragment fragment = new BookDetailFragment();
         Bundle args = new Bundle();
         args.putString(ARG_TITLE, title);
@@ -113,7 +115,7 @@ public class BookDetailFragment extends Fragment {
 
         // Initialize Firestore
         db = FirebaseFirestore.getInstance();
-
+        subscriptionManager = new SubscriptionManager(getActivity());
         // Initialize views
         coverImageView = view.findViewById(R.id.detail_cover_image);
         titleTextView = view.findViewById(R.id.detail_title);
@@ -267,7 +269,7 @@ public class BookDetailFragment extends Fragment {
                     .addOnCompleteListener(task -> {
                         if (task.isSuccessful() && !task.getResult().isEmpty()) {
                             // Book is already in the user's library
-                            buyNowButton.setText("Already Added to Library");
+                            buyNowButton.setText("Already Added to Library, Open");
                             buyNowButton.setOnClickListener(v -> openLibraryFragment());
                         } else {
                             // Book is not in the user's library
@@ -289,7 +291,7 @@ public class BookDetailFragment extends Fragment {
             switch (accessType) {
                 case "Free":
                     buyNowButton.setText("Add to Library");
-                    buyNowButton.setOnClickListener(v -> addPurchaseToDatabase());
+                    buyNowButton.setOnClickListener(v -> addPurchaseToDatabase(null, null)); // For free, no transaction ID
                     break;
                 case "Paid":
                     buyNowButton.setText("Buy Now");
@@ -326,7 +328,7 @@ public class BookDetailFragment extends Fragment {
 
                             if (endDate != null && endDate.toDate().after(new Date())) {
                                 // Subscription is valid
-                                addPurchaseToDatabase();
+                                addPurchaseToDatabase(null, endDate.toDate()); // For subscription, no transaction ID
                             } else {
                                 // Subscription has expired
                                 showSubscriptionDialog();
@@ -385,37 +387,6 @@ public class BookDetailFragment extends Fragment {
                 });
     }
 
-    public void addPurchaseToDatabase() {
-        // Retrieve the user ID from shared preferences
-        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
-        String userId = sharedPreferences.getString("UserID", null);
-
-        if (userId != null && documentId != null) {
-            // Create a new Purchase object
-            Purchase purchase = new Purchase();
-            purchase.setEbook(db.collection("Ebook").document(documentId));
-            purchase.setPrice(PRICE); // Set the price according to your requirement
-            purchase.setPurchaseDate(new Timestamp(new Date()));
-            purchase.setReader(db.collection("Reader").document(userId));
-
-            // Add the purchase to the Purchase table
-            db.collection("Purchase")
-                    .add(purchase)
-                    .addOnSuccessListener(documentReference -> {
-                        // Purchase added successfully
-                        Toast.makeText(getContext(), "Purchase added to library!", Toast.LENGTH_SHORT).show();
-                    })
-                    .addOnFailureListener(e -> {
-                        // Error adding purchase
-                        Log.e(TAG, "Error adding purchase to library", e);
-                        Toast.makeText(getContext(), "Failed to add purchase to library", Toast.LENGTH_SHORT).show();
-                    });
-        } else {
-            // User ID or document ID is null
-            Toast.makeText(getContext(), "User ID or Document ID is null", Toast.LENGTH_SHORT).show();
-        }
-    }
-
     private void openPaymentOptionDialog() {
         // Create an AlertDialog builder with the custom style
         AlertDialog.Builder builder = new AlertDialog.Builder(requireContext(), R.style.AlertDialogCustomStyle);
@@ -438,10 +409,10 @@ public class BookDetailFragment extends Fragment {
                 .setView(layout)
                 // Add buttons for different payment options
                 .setPositiveButton("CBE", (dialog, which) -> {
-                    addPurchaseToDatabase();
+                    showTransactionIdDialog();
                 })
                 .setNegativeButton("Telebirr", (dialog, which) -> {
-                    addPurchaseToDatabase();
+                    showTransactionIdDialog();
                 })
                 .setNeutralButton("Cancel", null); // Neutral button to cancel the dialog
 
@@ -467,6 +438,130 @@ public class BookDetailFragment extends Fragment {
             neutralButton.setTextColor(buttonTextColor);
         }
     }
+
+    private void showTransactionIdDialog() {
+        // Create an AlertDialog builder with the custom style
+        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext(), R.style.AlertDialogCustomStyle);
+
+        // Create a container for the custom view
+        LinearLayout layout = new LinearLayout(requireContext());
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(50, 50, 50, 50); // Add padding to the container
+        layout.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.var)); // Set background color
+
+        // Create a TextView for the transaction message
+        TextView transactionMessageTextView = new TextView(requireContext());
+        transactionMessageTextView.setText("After completing payment using this account number 1111, enter the transaction ID here:");
+        transactionMessageTextView.setTextColor(ContextCompat.getColor(requireContext(), R.color.purple));
+        transactionMessageTextView.setPadding(0, 0, 0, 20); // Add some padding for better UI
+        layout.addView(transactionMessageTextView); // Add the TextView to the container
+
+        // Create an EditText for the user to enter the transaction ID
+        EditText transactionIdEditText = new EditText(requireContext());
+        transactionIdEditText.setHint("Transaction ID");
+        transactionIdEditText.setTextColor(ContextCompat.getColor(requireContext(),R.color.purple));
+        layout.addView(transactionIdEditText); // Add the EditText to the container
+
+        // Set the title and custom view for the dialog
+        builder.setTitle("Enter Transaction ID")
+                .setView(layout)
+                .setPositiveButton("Submit", (dialog, which) -> {
+                    // Get the transaction ID entered by the user
+                    String transactionId = transactionIdEditText.getText().toString().trim();
+                    if (!transactionId.isEmpty()) {
+                        // Proceed with adding purchase to database with the transaction ID
+                        addPurchaseToDatabase(transactionId,null);
+                    } else {
+                        Toast.makeText(getContext(), "Transaction ID cannot be empty", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .setNegativeButton("Cancel", null); // Neutral button to cancel the dialog
+
+        // Create the AlertDialog
+        AlertDialog dialog = builder.create();
+
+        // Show the AlertDialog
+        dialog.show();
+
+        // Customize the text color of the buttons to use the same color from resources
+        int buttonTextColor = ContextCompat.getColor(requireContext(), R.color.black);
+        Button positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+        Button negativeButton = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
+        Button neutralButton = dialog.getButton(AlertDialog.BUTTON_NEUTRAL);
+
+        if (positiveButton != null) {
+            positiveButton.setTextColor(buttonTextColor);
+        }
+        if (negativeButton != null) {
+            negativeButton.setTextColor(buttonTextColor);
+        }
+        if (neutralButton != null) {
+            neutralButton.setTextColor(buttonTextColor);
+        }
+    }
+
+    private void addPurchaseToDatabase(String transactionId, Date endDate) {
+        // Retrieve the user ID from shared preferences
+        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
+        String userId = sharedPreferences.getString("UserID", null);
+
+        if (userId != null && documentId != null) {
+            // Fetch the ebook document to get the price
+            db.collection("Ebook").document(documentId).get()
+                    .addOnSuccessListener(documentSnapshot -> {
+                        if (documentSnapshot.exists()) {
+                            // Get the price from the document
+                            Double price = documentSnapshot.getDouble("price");
+                            String accessType = documentSnapshot.getString("accessType");
+
+                            if (price != null) {
+                                // Create a new Purchase object
+                                Purchase purchase = new Purchase();
+                                purchase.setEbook(db.collection("Ebook").document(documentId));
+                                purchase.setPrice(price); // Set the price from the document
+                                purchase.setPurchaseDate(new Timestamp(new Date()));
+                                purchase.setReader(db.collection("Reader").document(userId));
+                                purchase.setTransactionId(transactionId); // Set the transaction ID
+                                purchase.setApprovalStatus("pending"); // Set approval status to "pending"
+                                purchase.setAccessType(accessType);
+                                if (endDate != null) {
+                                    purchase.setEndDate(new Timestamp(endDate)); // Set the end date for subscriptions
+                                }
+
+                                // Add the purchase to the Purchase collection
+                                db.collection("Purchase")
+                                        .add(purchase)
+                                        .addOnSuccessListener(documentReference -> {
+                                            // Purchase added successfully
+                                            Toast.makeText(getContext(), "Purchase added to library pending approval!", Toast.LENGTH_SHORT).show();
+                                            buyNowButton.setText("Already Added to Library, Open");
+                                            buyNowButton.setOnClickListener(v -> openLibraryFragment());
+                                        })
+                                        .addOnFailureListener(e -> {
+                                            // Error adding purchase
+                                            Log.e(TAG, "Error adding purchase to library", e);
+                                            Toast.makeText(getContext(), "Failed to add purchase to library", Toast.LENGTH_SHORT).show();
+                                        });
+                            } else {
+                                Toast.makeText(getContext(), "Price not found in document", Toast.LENGTH_SHORT).show();
+                            }
+                        } else {
+                            Toast.makeText(getContext(), "Ebook document not found", Toast.LENGTH_SHORT).show();
+                        }
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.e(TAG, "Error fetching ebook document", e);
+                        Toast.makeText(getContext(), "Failed to fetch ebook details", Toast.LENGTH_SHORT).show();
+                    });
+        } else {
+            // User ID or document ID is null
+            Toast.makeText(getContext(), "User ID or Document ID is null", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+
+
+
 
     private void openLibraryFragment() {
 

@@ -1,5 +1,6 @@
 package com.example.tobiya_books;
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -54,7 +55,8 @@ public class Profile extends Fragment {
     private BottomAppBar bottomAppBar;
     private Toolbar toolbar;
 
-    private static final String KEY_LOGGED_IN = "LoggedIn";
+    private ProgressDialog progressDialog;
+
     private static final String USER_COLLECTION = "Reader";
 
     private Uri profileImageUri = null;
@@ -62,7 +64,21 @@ public class Profile extends Fragment {
     public Profile() {
         // Required empty public constructor
     }
+    public interface OnUserProfileUpdatedListener {
+        void onUserProfileUpdated(String userId);
+    }
+    private OnUserProfileUpdatedListener callback;
 
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+        if (context instanceof OnUserProfileUpdatedListener) {
+            callback = (OnUserProfileUpdatedListener) context;
+        } else {
+            throw new RuntimeException(context.toString()
+                    + " must implement OnUserProfileUpdatedListener");
+        }
+    }
     public static Profile newInstance() {
         return new Profile();
     }
@@ -74,6 +90,9 @@ public class Profile extends Fragment {
         db = FirebaseFirestore.getInstance();
         storage = FirebaseStorage.getInstance();
         storageRef = storage.getReference().child("profilePicture");
+        progressDialog = new ProgressDialog(getContext());
+        progressDialog.setMessage("Please wait...");
+        progressDialog.setCancelable(false);
     }
 
     @Override
@@ -217,7 +236,6 @@ public class Profile extends Fragment {
         if (bottomAppBar != null) {
             bottomAppBar.setVisibility(View.GONE);
         }
-
     }
 
     private void showNavigationViews() {
@@ -244,9 +262,11 @@ public class Profile extends Fragment {
     }
 
     private void fetchUserProfile(String userId) {
+        progressDialog.show();
         db.collection(USER_COLLECTION).document(userId).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                progressDialog.dismiss();
                 if (task.isSuccessful()) {
                     DocumentSnapshot document = task.getResult();
                     if (document != null && document.exists()) {
@@ -293,7 +313,6 @@ public class Profile extends Fragment {
         }
     }
 
-
     private void chooseImage() {
         Intent intent = new Intent();
         intent.setType("image/*");
@@ -309,10 +328,10 @@ public class Profile extends Fragment {
             profileImageUri = data.getData();
             try {
                 Glide.with(requireActivity())
-                        .load(profileImageUri) // Load the profile photo URL here
-                        .placeholder(R.drawable.baseline_person_24) // Placeholder if image loading takes time
-                        .error(R.drawable.baseline_person_24) // Error placeholder if image fails to load
-                        .circleCrop() // Ensures the loaded image is circular
+                        .load(profileImageUri)
+                        .placeholder(R.drawable.baseline_person_24)
+                        .error(R.drawable.baseline_person_24)
+                        .circleCrop()
                         .into(imageViewProfilePhoto);
 
             } catch (Exception e) {
@@ -322,6 +341,8 @@ public class Profile extends Fragment {
     }
 
     private void uploadImage(final String userId, final String firstName, final String lastName, final String username, final String email) {
+        progressDialog.show();
+        buttonSave.setEnabled(false);
         final StorageReference profileImageRef = storageRef.child(userId + ".jpg");
         UploadTask uploadTask = profileImageRef.putFile(profileImageUri);
 
@@ -334,13 +355,18 @@ public class Profile extends Fragment {
                         public void onComplete(@NonNull Task<Uri> task) {
                             if (task.isSuccessful()) {
                                 Uri downloadUri = task.getResult();
+                                saveProfilePhotoUrlToPreferences(downloadUri.toString());  // Save URL to SharedPreferences
                                 updateUserProfile(userId, firstName, lastName, username, email, downloadUri.toString());
                             } else {
+                                progressDialog.dismiss();
+                                buttonSave.setEnabled(true);
                                 Toast.makeText(getActivity(), "Failed to get download URL", Toast.LENGTH_SHORT).show();
                             }
                         }
                     });
                 } else {
+                    progressDialog.dismiss();
+                    buttonSave.setEnabled(true);
                     Toast.makeText(getActivity(), "Failed to upload profile photo", Toast.LENGTH_SHORT).show();
                 }
             }
@@ -348,6 +374,8 @@ public class Profile extends Fragment {
     }
 
     private void updateUserProfile(String userId, String firstName, String lastName, String username, String email, String profilePhotoUrl) {
+        progressDialog.show();
+        buttonSave.setEnabled(false);
         Map<String, Object> user = new HashMap<>();
         user.put("firstName", firstName);
         user.put("lastName", lastName);
@@ -360,6 +388,8 @@ public class Profile extends Fragment {
         db.collection(USER_COLLECTION).document(userId).set(user, SetOptions.merge()).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
+                progressDialog.dismiss();
+                buttonSave.setEnabled(true);
                 if (task.isSuccessful()) {
                     Toast.makeText(getActivity(), "Profile updated successfully", Toast.LENGTH_SHORT).show();
                 } else {
@@ -376,4 +406,3 @@ public class Profile extends Fragment {
         editor.apply();
     }
 }
-

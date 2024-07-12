@@ -20,6 +20,7 @@ import com.google.android.material.button.MaterialButton;
 import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.ListenerRegistration;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -35,7 +36,7 @@ public class AllGroupsFragment extends Fragment implements GroupAdapter.OnGroupC
     private FirebaseFirestore db;
     private String currentUserId; // Store the current user ID here
     private TextView tvNoGroups; // TextView for the no groups message
-
+    private ListenerRegistration listenerRegistration;
     public AllGroupsFragment() {
         // Required empty public constructor
     }
@@ -69,44 +70,56 @@ public class AllGroupsFragment extends Fragment implements GroupAdapter.OnGroupC
         return view;
     }
 
+
+
     private void fetchGroups() {
-        db.collection("BookClub").get()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        groupList.clear(); // Clear the list before adding new groups
-                        for (DocumentSnapshot document : task.getResult()) {
-                            Group group = document.toObject(Group.class);
-                            if (group != null && group.getName() != null) {
-                                group.setId(document.getId()); // Ensure the ID is set
-                                groupList.add(group);
-                            } else {
-                                Log.e("FetchGroup", "Group name is null or group is null for document: " + document.getId());
-                            }
-                        }
-                        // Sort the groupList based on creationDate
-                        Collections.sort(groupList, (group1, group2) -> {
-                            if (group1.getCreationDate() == null && group2.getCreationDate() == null) {
-                                return 0; // Both dates are null, consider them equal
-                            } else if (group1.getCreationDate() == null) {
-                                return 1; // group1's date is null, place it after group2
-                            } else if (group2.getCreationDate() == null) {
-                                return -1; // group2's date is null, place it after group1
-                            }
-                            // Compare non-null creationDate values
-                            return group2.getCreationDate().compareTo(group1.getCreationDate());
-                        });
+        listenerRegistration = db.collection("BookClub").addSnapshotListener((snapshots, e) -> {
+            if (e != null) {
+                Log.e("FetchGroup", "Error listening for changes: ", e);
+                return;
+            }
 
-                        if (groupList.isEmpty()) {
-                            tvNoGroups.setVisibility(View.VISIBLE);
-                        } else {
-                            tvNoGroups.setVisibility(View.GONE);
-                        }
-
-                        groupAdapter.notifyDataSetChanged();
+            if (snapshots != null) {
+                groupList.clear(); // Clear the list before adding new groups
+                for (DocumentSnapshot document : snapshots) {
+                    Group group = document.toObject(Group.class);
+                    if (group != null && group.getName() != null) {
+                        group.setId(document.getId()); // Ensure the ID is set
+                        groupList.add(group);
                     } else {
-                        Log.e("FetchGroup", "Error getting documents: ", task.getException());
+                        Log.e("FetchGroup", "Group name is null or group is null for document: " + document.getId());
                     }
+                }
+                // Sort the groupList based on creationDate
+                Collections.sort(groupList, (group1, group2) -> {
+                    if (group1.getCreationDate() == null && group2.getCreationDate() == null) {
+                        return 0; // Both dates are null, consider them equal
+                    } else if (group1.getCreationDate() == null) {
+                        return 1; // group1's date is null, place it after group2
+                    } else if (group2.getCreationDate() == null) {
+                        return -1; // group2's date is null, place it after group1
+                    }
+                    // Compare non-null creationDate values
+                    return group2.getCreationDate().compareTo(group1.getCreationDate());
                 });
+
+                if (groupList.isEmpty()) {
+                    tvNoGroups.setVisibility(View.VISIBLE);
+                } else {
+                    tvNoGroups.setVisibility(View.GONE);
+                }
+
+                groupAdapter.notifyDataSetChanged();
+            }
+        });
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if (listenerRegistration != null) {
+            listenerRegistration.remove();
+        }
     }
 
     private void showCreateGroupDialog() {

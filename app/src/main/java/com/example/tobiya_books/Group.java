@@ -12,6 +12,7 @@ public class Group {
     private List<String> members;
     private Date creationDate;
     private DocumentReference creator; // Use DocumentReference instead of String
+    private Date joinDate; // New field for join date
 
     public Group() {
         // Required empty constructor for Firestore serialization
@@ -62,5 +63,13 @@ public class Group {
 
     public void setCreator(DocumentReference creator) {
         this.creator = creator;
+    }
+
+    public Date getJoinDate() {
+        return joinDate;
+    }
+
+    public void setJoinDate(Date joinDate) {
+        this.joinDate = joinDate;
     }
 }

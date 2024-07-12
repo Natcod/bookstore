@@ -24,5 +24,10 @@
     </style>
 
 
+        <style name="CustomProgressDialog" parent="Theme.AppCompat.Light.Dialog">
+            <item name="android:background">#FFFFFF</item>
+        </style>
+
+
 
 </resources>

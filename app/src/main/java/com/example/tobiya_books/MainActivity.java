@@ -26,8 +26,10 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -50,6 +52,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
@@ -57,20 +60,28 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.Timestamp;
+import com.google.firebase.database.annotations.Nullable;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.messaging.FirebaseMessaging;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import android.Manifest;
-public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, BooksAdapter.OnBookClickListener, BookDetailFragment.MainActivityListener {
+
+import androidx.lifecycle.ViewModelProvider;
+
+public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, BooksAdapter.OnBookClickListener{
 
     private DrawerLayout drawerLayout;
     private BottomNavigationView bottomNavigationView;
@@ -95,9 +106,18 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private static final int MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE = 123; // Use any unique request code
     private static final int ALARM_INTERVAL = 12 * 60 * 60 * 1000; // 12 hours in milliseconds
 
+    private ProfileViewModel profileViewModel;
 
     private static final int REQUEST_CODE_ALARM = 101;
     private FirestoreNotificationHelper notificationHelper;
+
+
+    private TextView firstNameTextView;
+    private TextView usernameTextView;
+    private ImageView imageViewProfilePhoto;
+    private TextView textViewInitial;
+
+    private SubscriptionManager subscriptionManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -105,6 +125,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         setContentView(R.layout.activity_main);
 
 
+        initializeUI();
+
+        subscriptionManager = new SubscriptionManager(this);
+        // Fetch subscription prices from Firestore
+        fetchSubscriptionPrices();
+
+        // Handle incoming intent
         Intent intent = getIntent();
         if (intent != null) {
             Log.d("MainActivity", "Intent has extra 'book_id': " + intent.hasExtra("book_id"));
@@ -116,9 +143,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             }
         }
 
-
         notificationHelper = new FirestoreNotificationHelper(this);
 
+        // Request permissions and fetch notifications
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
                 ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE);
@@ -131,14 +158,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             notificationHelper.listenForNewNotifications();
         }
 
+        // Schedule alarm
         scheduleAlarm();
 
-
-
+        // Initialize SharedPreferences
         sharedPreferences = getSharedPreferences("AppPrefs", MODE_PRIVATE);
 
+        // Subscribe to notifications if not subscribed
         boolean isSubscribed = sharedPreferences.getBoolean("isSubscribedToNotifications", false);
-
         if (!isSubscribed) {
             FirebaseMessaging.getInstance().subscribeToTopic("all")
                     .addOnCompleteListener(task -> {
@@ -153,8 +180,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     });
         }
 
+        // Initialize Firestore
         db = FirebaseFirestore.getInstance();
 
+        // Load initial fragment if savedInstanceState is null
         if (savedInstanceState == null) {
             FragmentManager fragmentManager = getSupportFragmentManager();
             FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
@@ -162,6 +191,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             fragmentTransaction.commit();
         }
 
+        // Setup FAB, toolbar, and drawer layout
         fab = findViewById(R.id.fab);
         toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -174,11 +204,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         NavigationView navigationView = findViewById(R.id.navigation_drawer);
         navigationView.setNavigationItemSelectedListener(this);
 
-        String userId = sharedPreferences.getString("UserID", null);
-        if (userId != null) {
-            fetchUserProfile(userId);
-        }
 
+
+        // Setup bottom navigation view
         bottomNavigationView = findViewById(R.id.bottom_navigation);
         bottomNavigationView.setBackground(null);
         floatingActionButton = findViewById(R.id.fab);
@@ -200,17 +228,90 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             return false;
         });
 
+        // Load the default fragment
         fragmentManager = getSupportFragmentManager();
         openFragment(new HomeFragment());
 
+        // Set FAB click listener
         fab.setOnClickListener(view -> showBottomDialog());
 
+        // Setup RecyclerView
         recyclerView = findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         booksAdapter = new BooksAdapter(this, new ArrayList<>(), this);
         recyclerView.setAdapter(booksAdapter);
 
+        // Initialize Firestore
         db = FirebaseFirestore.getInstance();
+
+        String userId = sharedPreferences.getString("UserID", null);
+        if (userId != null) {
+            Log.d("MainActivity", "UserID found: " + userId);
+            fetchUserProfile(userId);
+        } else {
+            Log.d("MainActivity", "UserID not found in SharedPreferences");
+        }
+
+    }
+    private void initializeUI() {
+        // Initialization logic for UI elements
+        Log.d("MainActivity", "initializeUI called");
+        NavigationView navigationView = findViewById(R.id.navigation_drawer);
+        navigationView.setNavigationItemSelectedListener(this);
+
+        // Initialize the header view
+        View headerView = navigationView.getHeaderView(0);
+        firstNameTextView = headerView.findViewById(R.id.firstName);
+        usernameTextView = headerView.findViewById(R.id.username);
+        imageViewProfilePhoto = headerView.findViewById(R.id.imageViewProfilePhoto);
+        textViewInitial = headerView.findViewById(R.id.initial);
+
+        profileViewModel = new ViewModelProvider(this).get(ProfileViewModel.class);
+
+        profileViewModel.getProfileData().observe(this, document -> {
+            if (document != null) {
+                String firstName = document.getString("firstName");
+                String lastName = document.getString("lastName");
+                String username = document.getString("username");
+                String profilePhotoUrl = document.getString("profilePhotoUrl");
+
+                Log.d("MainActivity", "Profile data updated: firstName = " + firstName + ", username = " + username + ", profilePhotoUrl = " + profilePhotoUrl);
+
+                if (firstNameTextView != null) firstNameTextView.setText(firstName);
+                if (usernameTextView != null) usernameTextView.setText("@" + username);
+
+                if (profilePhotoUrl != null && !profilePhotoUrl.isEmpty() && imageViewProfilePhoto != null) {
+                    FirebaseStorage storage = FirebaseStorage.getInstance();
+                    StorageReference storageRef = storage.getReferenceFromUrl(profilePhotoUrl);
+
+                    storageRef.getDownloadUrl().addOnSuccessListener(uri -> {
+                        if (!uri.toString().equals(imageViewProfilePhoto.getTag())) {
+                            Glide.with(MainActivity.this)
+                                    .load(uri)
+                                    .placeholder(R.drawable.baseline_account_circle_24)
+                                    .error(R.drawable.baseline_account_circle_24)
+                                    .circleCrop()
+                                    .into(imageViewProfilePhoto);
+                            imageViewProfilePhoto.setTag(uri.toString());
+                            textViewInitial.setVisibility(View.GONE);
+                        }
+                    }).addOnFailureListener(exception -> {
+                        Toast.makeText(MainActivity.this, "Failed to fetch profile image", Toast.LENGTH_SHORT).show();
+                    });
+                } else {
+                    showInitials(firstName, lastName, textViewInitial, imageViewProfilePhoto);
+                }
+            } else {
+                Log.d("MainActivity", "Profile document is null");
+                Toast.makeText(MainActivity.this, "User profile not found", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+
+    private void fetchUserProfile(String userId) {
+        Log.d("MainActivity", "fetchUserProfile called with userId: " + userId);
+        profileViewModel.fetchUserProfile(userId);
     }
 
     @Override
@@ -258,7 +359,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         transaction.replace(R.id.fragment_container, fragment);
         transaction.commit();
     }
-    // Inside MainActivity
     // Inside MainActivity
     public void openBookDetailFragment(String bookId) {
         // Fetch the Book object using the bookId
@@ -349,8 +449,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         return true;
     }
-
-
     private void setupSearchView() {
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
@@ -502,22 +600,20 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         builder.setNegativeButton("No", (dialog, which) -> dialog.dismiss());
         builder.show();
     }
+
     @Override
     public void onBackPressed() {
         if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
             drawerLayout.closeDrawer(GravityCompat.START);
         } else {
-            super.onBackPressed();
+            Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.fragment_container); // Change this to your actual fragment container ID
+            if (currentFragment instanceof OnBackPressedListener) {
+                ((OnBackPressedListener) currentFragment).onBackPressed();
+            } else {
+                super.onBackPressed();
+            }
         }
     }
-
-    public void addPurchaseToDatabase() {
-        // Implement the method to add purchase to the database
-        // You can put the implementation here or call another method that handles this
-        // For example:
-        // db.collection("Purchase").add(purchase)...
-    }
-
     @Override
     public void onBookClick(Book book) {
         // Open BookDetailFragment with the clicked book's details
@@ -547,10 +643,16 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                             Double weeklyPrice = document.getDouble("weeklyPrice");
                             Double monthlyPrice = document.getDouble("monthlyPrice");
                             Double yearlyPrice = document.getDouble("yearlyPrice");
+                            Double dailyNumberBook= document.getDouble("dailyNumberBook");
+                            Double weeklyNumberBook= document.getDouble("weeklyNumberBook");
+                            Double monthlyNumberBook= document.getDouble("monthlyNumberBook");
+                            Double yearlyNumberBook= document.getDouble("yearlyNumberBook");
+
 
                             if (dailyPrice != null && weeklyPrice != null && monthlyPrice != null && yearlyPrice != null) {
                                 // Update subscription prices
-                                updateSubscriptionPrices(dailyPrice, weeklyPrice, monthlyPrice, yearlyPrice);
+                                updateSubscriptionPrices(dailyPrice, weeklyPrice, monthlyPrice, yearlyPrice,dailyNumberBook,weeklyNumberBook,monthlyNumberBook,yearlyNumberBook);
+                                subscriptionManager.updateSubscriptionPrices( dailyNumberBook, weeklyNumberBook, monthlyNumberBook, yearlyNumberBook);
                             } else {
                                 Log.d(TAG, "One or more subscription prices are null");
                             }
@@ -564,21 +666,27 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     // Update the subscription prices in the bottom sheet dialog
-    private void updateSubscriptionPrices(double dailyPrice, double weeklyPrice, double monthlyPrice, double yearlyPrice) {
+    private void updateSubscriptionPrices(double dailyPrice, double weeklyPrice, double monthlyPrice, double yearlyPrice, double dailyNumberBook, double weeklyNumberBook, double monthlyNumberBook, double yearlyNumberBook) {
+        // Assuming dialog is properly initialized before calling this method
+        if (dialog == null) {
+            Log.e(TAG, "Dialog is null. Ensure it is properly initialized.");
+            return;
+        }
+
         RadioButton dailyRadioButton = dialog.findViewById(R.id.radioButton_daily);
         RadioButton weeklyRadioButton = dialog.findViewById(R.id.radioButton_weekly);
         RadioButton monthlyRadioButton = dialog.findViewById(R.id.radioButton_monthly);
         RadioButton yearlyRadioButton = dialog.findViewById(R.id.radioButton_yearly);
+
         if (dailyRadioButton != null && weeklyRadioButton != null && monthlyRadioButton != null && yearlyRadioButton != null) {
-            dailyRadioButton.setText(String.format("Daily - %.2f ETB", dailyPrice));
-            weeklyRadioButton.setText(String.format("Weekly - %.2f ETB", weeklyPrice));
-            monthlyRadioButton.setText(String.format("Monthly - %.2f ETB", monthlyPrice));
-            yearlyRadioButton.setText(String.format("Yearly - %.2f ETB", yearlyPrice));
+            dailyRadioButton.setText(String.format("Daily - %.2f ETB With %.0f Books", dailyPrice, dailyNumberBook));
+            weeklyRadioButton.setText(String.format("Weekly - %.2f ETB With %.0f Books", weeklyPrice, weeklyNumberBook));
+            monthlyRadioButton.setText(String.format("Monthly - %.2f ETB With %.0f Books", monthlyPrice, monthlyNumberBook));
+            yearlyRadioButton.setText(String.format("Yearly - %.2f ETB With %.0f Books", yearlyPrice, yearlyNumberBook));
         } else {
             Log.e(TAG, "One or more radio buttons are null");
         }
     }
-
     // Show the bottom sheet dialog and fetch subscription prices
     public void showBottomDialog() {
         dialog = new Dialog(this);
@@ -588,17 +696,27 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         ImageView cancelButton = dialog.findViewById(R.id.cancelButton);
         cancelButton.setOnClickListener(view -> dialog.dismiss());
 
-        Button buyNowButton = dialog.findViewById(R.id.buyButton);
+        EditText transactionIdEditText = dialog.findViewById(R.id.transactionIdEditText);
+        transactionIdEditText.setVisibility(View.GONE);
+
+        Button buyNowButton = dialog.findViewById(R.id.SubscribeButton);
         buyNowButton.setOnClickListener(v -> {
-            // Extract subscription price from the dialog
-            // Assuming you have a method to retrieve the price, let's call it getSubscriptionPrice()
-            double price = getSubscriptionPrice();
+            if (transactionIdEditText.getVisibility() == View.GONE) {
+                // Show the transaction ID input field if it's not visible
+                transactionIdEditText.setVisibility(View.VISIBLE);
+            } else {
+                // Extract subscription price from the dialog
+                double price = getSubscriptionPrice();
 
-            // Retrieve the selected subscription type from the radio buttons
-            String type = getSelectedSubscriptionType();
+                // Retrieve the selected subscription type from the radio buttons
+                String type = getSelectedSubscriptionType();
 
-            // Add the subscription to the database
-            addSubscriptionToDatabase(price, type);
+                // Retrieve the transaction ID from the input field
+                String transactionId = transactionIdEditText.getText().toString();
+
+                // Add the subscription to the database with the transaction ID
+                addSubscriptionToDatabase(price, type, transactionId);
+            }
         });
 
         fetchSubscriptionPrices(); // Fetch and update prices before showing the dialog
@@ -610,6 +728,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         dialog.getWindow().setGravity(Gravity.BOTTOM);
     }
 
+    private void hideTransactionIdInputField() {
+        EditText transactionIdEditText = dialog.findViewById(R.id.transactionIdEditText);
+        transactionIdEditText.setVisibility(View.GONE);
+    }
+
+    private void resetRadioButtons() {
+        RadioGroup radioGroup = dialog.findViewById(R.id.radioGroup);
+        radioGroup.clearCheck(); // Clear selection
+    }
     private double getSubscriptionPrice() {
         RadioButton dailyRadioButton = dialog.findViewById(R.id.radioButton_daily);
         RadioButton weeklyRadioButton = dialog.findViewById(R.id.radioButton_weekly);
@@ -663,7 +790,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     // Add the subscription to the Firestore database
-    private void addSubscriptionToDatabase(double price, String type) {
+    private void addSubscriptionToDatabase(double price, String type, String transactionId) {
         // Retrieve the UserID from SharedPreferences
         String userID = sharedPreferences.getString("UserID", "");
 
@@ -679,6 +806,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             subscriptionData.put("price", price);
             subscriptionData.put("reader", FirebaseFirestore.getInstance().document("Reader/" + userID));
             subscriptionData.put("type", type);
+            subscriptionData.put("transactionId", transactionId); // Add transaction ID
+            subscriptionData.put("approvalStatus", "pending"); // Set approval status to pending
 
             // Get reference to the Subscription collection
             CollectionReference subscriptionsRef = FirebaseFirestore.getInstance().collection("Subscription");
@@ -687,7 +816,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             subscriptionsRef.add(subscriptionData)
                     .addOnSuccessListener(documentReference -> {
                         Log.d(TAG, "Subscription added with ID: " + documentReference.getId());
-                        Toast.makeText(MainActivity.this, "Subscription added successfully!", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(MainActivity.this, "Subscription added successfully. After approval, your book will be ready. Happy reading!", Toast.LENGTH_SHORT).show();
+                        hideTransactionIdInputField();
+                        resetRadioButtons();
+
+                        // Update the subscription type and ID in SharedPreferences
+                        SubscriptionManager subscriptionManager = new SubscriptionManager(MainActivity.this);
+                        subscriptionManager.updateSubscriptionType(type, documentReference.getId());
+                        Log.d(TAG, "Subscription type and ID updated in SharedPreferences: " + type + ", " + documentReference.getId());
                     })
                     .addOnFailureListener(e -> {
                         Log.e(TAG, "Error adding subscription", e);
@@ -698,6 +834,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             Toast.makeText(MainActivity.this, "Failed to add subscription: UserID is empty", Toast.LENGTH_SHORT).show();
         }
     }
+
+
+
 
     // Calculate the end date of the subscription based on the start date and subscription type
     private Timestamp calculateEndDate(Timestamp startDate, String type) {
@@ -723,50 +862,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
 
         return new Timestamp(calendar.getTime());
-    }
-    private void fetchUserProfile(String userId) {
-        if (db == null) {
-            Toast.makeText(this, "Firebase Firestore is not initialized", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        db.collection("Reader").document(userId).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                if (task.isSuccessful()) {
-                    DocumentSnapshot document = task.getResult();
-                    if (document != null && document.exists()) {
-                        String firstName = document.getString("firstName");
-                        String lastName = document.getString("lastName");
-                        String username = document.getString("username");
-                        String profilePhotoUrl = document.getString("profilePhotoUrl");
-
-                        TextView firstNameTextView = findViewById(R.id.firstName);
-                        TextView usernameTextView = findViewById(R.id.username);
-                        ImageView imageViewProfilePhoto = findViewById(R.id.imageViewProfilePhoto);
-                        TextView textViewInitial = findViewById(R.id.initial);
-
-                        if(firstNameTextView !=null) firstNameTextView.setText(firstName);
-                        if(usernameTextView!=null)  usernameTextView.setText("@" + username);
-
-                        if (profilePhotoUrl != null && !profilePhotoUrl.isEmpty() && imageViewProfilePhoto !=null) {
-                            Glide.with(MainActivity.this)
-                                    .load(profilePhotoUrl)
-                                    .placeholder(R.drawable.baseline_account_circle_24)
-                                    .error(R.drawable.baseline_account_circle_24)
-                                    .circleCrop()
-                                    .into(imageViewProfilePhoto);
-                            textViewInitial.setVisibility(View.GONE);
-                        } else {
-                            showInitials(firstName, lastName, textViewInitial, imageViewProfilePhoto);
-                        }
-                    } else {
-                        Toast.makeText(MainActivity.this, "User profile not found", Toast.LENGTH_SHORT).show();
-                    }
-                } else {
-                    Toast.makeText(MainActivity.this, "Failed to fetch user profile", Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
     }
 
     private void showInitials(String firstName, String lastName, TextView textViewInitial, ImageView imageViewProfilePhoto) {

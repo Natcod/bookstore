@@ -1,139 +1,160 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/dialogbg">
-
-    <ImageView
-        android:layout_width="70dp"
-        android:layout_height="wrap_content"
-        android:src="@drawable/ic_round_remove_24"
-        android:layout_gravity="center|top"
-        android:scaleType="centerCrop"/>
+    android:fillViewport="true">
 
     <LinearLayout
+        android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <TextView
-            android:id="@+id/createText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAlignment="viewStart"
-            android:text="Buy Subscription"
-            android:padding="8dp"
-            android:layout_marginStart="12dp"
-            android:layout_marginTop="5dp"
-            android:textSize="25sp" />
+        android:background="@drawable/dialogbg"
+        android:padding="16dp">
 
         <ImageView
+            android:layout_width="70dp"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_round_remove_24"
+            android:layout_gravity="center|top"
+            android:scaleType="centerCrop"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/createText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAlignment="viewStart"
+                android:text="Buy Subscription"
+                android:padding="8dp"
+                android:layout_marginStart="12dp"
+                android:layout_marginTop="5dp"
+                android:textSize="25sp" />
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_baseline_clear_24"
+                android:layout_marginLeft="100dp"
+                android:layout_marginTop="8dp"
+                android:id="@+id/cancelButton"/>
+        </LinearLayout>
+
+        <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/ic_baseline_clear_24"
-            android:layout_marginLeft="100dp"
-            android:layout_marginTop="8dp"
-            android:id="@+id/cancelButton"/>
-    </LinearLayout>
+            android:text="Subscription plan"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="20dp"
+            android:textStyle="bold"/>
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Subscription plan"
-        android:layout_marginTop="20dp"
-        android:layout_marginBottom="20dp"
-        android:textStyle="bold"/>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
-
-        <RadioGroup
-            android:id="@+id/radioGroup"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <RadioButton
-                android:id="@+id/radioButton_daily"
+            <RadioGroup
+                android:id="@+id/radioGroup"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="@color/black"
-                android:text="Daily - 70 ETB" />
+                android:orientation="vertical">
 
-            <RadioButton
-                android:id="@+id/radioButton_weekly"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textColor="@color/black"
-                android:text="Weekly - 200 ETB" />
+                <RadioButton
+                    android:id="@+id/radioButton_daily"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/black"
+                    android:text="Daily - 70 ETB"
+                    android:checked="true"/>
 
-            <RadioButton
-                android:id="@+id/radioButton_monthly"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textColor="@color/black"
-                android:text="Monthly - 500 ETB" />
+                <RadioButton
+                    android:id="@+id/radioButton_weekly"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/black"
+                    android:text="Weekly - 200 ETB" />
 
-            <RadioButton
-                android:id="@+id/radioButton_yearly"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textColor="@color/black"
-                android:text="Yearly - 2000 ETB" />
-        </RadioGroup>
+                <RadioButton
+                    android:id="@+id/radioButton_monthly"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/black"
+                    android:text="Monthly - 500 ETB" />
+
+                <RadioButton
+                    android:id="@+id/radioButton_yearly"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/black"
+                    android:text="Yearly - 2000 ETB" />
+            </RadioGroup>
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Payment option"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="20dp"
+            android:textStyle="bold"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="@dimen/cardview_default_elevation">
+
+            <RadioGroup
+                android:id="@+id/radioGroupPayment"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <RadioButton
+                    android:id="@+id/radioPayment1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/black"
+                    android:text="Telebirr"
+                    android:checked="true" />
+
+                <RadioButton
+                    android:id="@+id/radioPayment2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/black"
+                    android:text="CBE" />
+            </RadioGroup>
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/transactionIdText"
+            android:text="Please make your payment using the account number 1111 and enter the transaction ID."
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="20dp"
+            android:visibility="gone"
+            android:textStyle="bold"/>
+
+        <EditText
+            android:id="@+id/transactionIdEditText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Transaction Id"
+            android:visibility="gone"
+            android:textColorHint="@color/purple"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="20dp" />
+
+        <Button
+            android:id="@+id/SubscribeButton"
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="Subscribe Now"
+            android:background="@drawable/round_button_background" />
     </LinearLayout>
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Payment option"
-        android:layout_marginTop="20dp"
-        android:layout_marginBottom="20dp"
-        android:textStyle="bold"/>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="@dimen/cardview_default_elevation">
-
-        <ImageButton
-            android:id="@+id/paymentOptionButton"
-            android:layout_width="80dp"
-            android:layout_height="70dp"
-            android:layout_marginLeft="5dp"
-            android:layout_marginRight="5dp"
-            android:background="@drawable/tele" />
-
-        <ImageButton
-            android:id="@+id/paymentOption1Button"
-            android:layout_width="80dp"
-            android:layout_height="70dp"
-            android:layout_marginRight="5dp"
-            android:background="@drawable/awash" />
-
-        <ImageButton
-            android:id="@+id/paymentOption2Button"
-            android:layout_width="80dp"
-            android:layout_height="70dp"
-            android:layout_marginRight="5dp"
-            android:background="@drawable/cbe" />
-
-        <ImageButton
-            android:id="@+id/paymentOption3Button"
-            android:layout_width="80dp"
-            android:layout_height="70dp"
-            android:background="@drawable/abi" />
-    </LinearLayout>
-
-    <Button
-        android:id="@+id/buyButton"
-        android:layout_width="150dp"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:text="Subscribe Now"
-        android:background="@drawable/round_button_background" />
-</LinearLayout>
+</ScrollView>
