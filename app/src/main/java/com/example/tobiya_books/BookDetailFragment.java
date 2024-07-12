@@ -64,12 +64,12 @@ public class BookDetailFragment extends Fragment {
     private String documentId;
 
     private FirebaseFirestore db;
-    static int PRICE;
+    static Double PRICE;
     private SubscriptionManager subscriptionManager;
 
     public static BookDetailFragment newInstance(String title, String author, String description, String publicationDate,
                                                  String coverImageUrl, String language, double price, String accessType, String fileURL, String uploadDate) {
-        PRICE = (int) price;
+        PRICE = (Double) price;
         BookDetailFragment fragment = new BookDetailFragment();
         Bundle args = new Bundle();
         args.putString(ARG_TITLE, title);
@@ -506,32 +506,55 @@ public class BookDetailFragment extends Fragment {
         String userId = sharedPreferences.getString("UserID", null);
 
         if (userId != null && documentId != null) {
-            // Create a new Purchase object
-            Purchase purchase = new Purchase();
-            purchase.setEbook(db.collection("Ebook").document(documentId));
-            purchase.setPrice(PRICE); // Set the price according to your requirement
-            purchase.setPurchaseDate(new Timestamp(new Date()));
-            purchase.setReader(db.collection("Reader").document(userId));
-            purchase.setTransactionId(transactionId); // Set the transaction ID
-            purchase.setApprovalStatus("pending"); // Set approval status to "pending"
+            // Fetch the ebook document to get the price
+            db.collection("Ebook").document(documentId).get()
+                    .addOnSuccessListener(documentSnapshot -> {
+                        if (documentSnapshot.exists()) {
+                            // Get the price from the document
+                            Double price = documentSnapshot.getDouble("price");
 
-            // Add the purchase to the Purchase table
-            db.collection("Purchase")
-                    .add(purchase)
-                    .addOnSuccessListener(documentReference -> {
-                        // Purchase added successfully
-                        Toast.makeText(getContext(), "Purchase added to library pending approval!", Toast.LENGTH_SHORT).show();
+                            if (price != null) {
+                                // Create a new Purchase object
+                                Purchase purchase = new Purchase();
+                                purchase.setEbook(db.collection("Ebook").document(documentId));
+                                purchase.setPrice(price); // Set the price from the document
+                                purchase.setPurchaseDate(new Timestamp(new Date()));
+                                purchase.setReader(db.collection("Reader").document(userId));
+                                purchase.setTransactionId(transactionId); // Set the transaction ID
+                                purchase.setApprovalStatus("pending"); // Set approval status to "pending"
+
+                                // Add the purchase to the Purchase collection
+                                db.collection("Purchase")
+                                        .add(purchase)
+                                        .addOnSuccessListener(documentReference -> {
+                                            // Purchase added successfully
+                                            Toast.makeText(getContext(), "Purchase added to library pending approval!", Toast.LENGTH_SHORT).show();
+                                            buyNowButton.setText("Already Added to Library, Open");
+                                            buyNowButton.setOnClickListener(v -> openLibraryFragment());
+                                        })
+                                        .addOnFailureListener(e -> {
+                                            // Error adding purchase
+                                            Log.e(TAG, "Error adding purchase to library", e);
+                                            Toast.makeText(getContext(), "Failed to add purchase to library", Toast.LENGTH_SHORT).show();
+                                        });
+                            } else {
+                                Toast.makeText(getContext(), "Price not found in document", Toast.LENGTH_SHORT).show();
+                            }
+                        } else {
+                            Toast.makeText(getContext(), "Ebook document not found", Toast.LENGTH_SHORT).show();
+                        }
                     })
                     .addOnFailureListener(e -> {
-                        // Error adding purchase
-                        Log.e(TAG, "Error adding purchase to library", e);
-                        Toast.makeText(getContext(), "Failed to add purchase to library", Toast.LENGTH_SHORT).show();
+                        Log.e(TAG, "Error fetching ebook document", e);
+                        Toast.makeText(getContext(), "Failed to fetch ebook details", Toast.LENGTH_SHORT).show();
                     });
         } else {
             // User ID or document ID is null
             Toast.makeText(getContext(), "User ID or Document ID is null", Toast.LENGTH_SHORT).show();
         }
     }
+
+
 
 
 
