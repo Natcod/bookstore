@@ -575,7 +575,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         Window window = searchDialog.getWindow();
         if (window != null) {
             window.setLayout(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            window.setGravity(Gravity.CENTER);
+            window.setGravity(Gravity.TOP | Gravity.START);
             window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
             window.setWindowAnimations(R.style.DialogAnimation);
         }
