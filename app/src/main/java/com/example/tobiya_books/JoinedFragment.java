@@ -73,10 +73,11 @@ public class JoinedFragment extends Fragment implements GroupAdapter.OnGroupClic
                             Log.e(TAG, "Error listening for changes: ", e);
                             Toast.makeText(getContext(), "Error listening for changes: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                             tvNoJoinedGroups.setVisibility(View.VISIBLE);
+                            tvNoJoinedGroups.setText("Error listening for changes: " + e.getMessage());
                             return;
                         }
 
-                        if (querySnapshot != null) {
+                        if (querySnapshot != null && !querySnapshot.isEmpty()) {
                             for (DocumentChange documentChange : querySnapshot.getDocumentChanges()) {
                                 QueryDocumentSnapshot document = documentChange.getDocument();
                                 DocumentReference bookClubRef = document.getDocumentReference("bookClub");
@@ -100,6 +101,7 @@ public class JoinedFragment extends Fragment implements GroupAdapter.OnGroupClic
                             groupList.clear();
                             groupAdapter.notifyDataSetChanged();
                             tvNoJoinedGroups.setVisibility(View.VISIBLE);
+                            tvNoJoinedGroups.setText("No joined groups available.");
                             Log.d(TAG, "tvNoJoinedGroups visibility set to VISIBLE due to empty query snapshot");
                         }
                     });
@@ -107,6 +109,7 @@ public class JoinedFragment extends Fragment implements GroupAdapter.OnGroupClic
             Log.d(TAG, "Context is null");
             // Show the TextView if the context is null
             tvNoJoinedGroups.setVisibility(View.VISIBLE);
+            tvNoJoinedGroups.setText("Unable to fetch joined groups. Context is null.");
             Log.d(TAG, "tvNoJoinedGroups visibility set to VISIBLE due to null context");
         }
     }
@@ -129,6 +132,8 @@ public class JoinedFragment extends Fragment implements GroupAdapter.OnGroupClic
                 updateGroupList();
             } else {
                 Log.d(TAG, "Book club document does not exist");
+                tvNoJoinedGroups.setVisibility(View.VISIBLE);
+                tvNoJoinedGroups.setText("No joined groups available.");
             }
         }).addOnFailureListener(e1 -> {
             Log.e(TAG, "Error fetching book club: ", e1);
@@ -159,6 +164,8 @@ public class JoinedFragment extends Fragment implements GroupAdapter.OnGroupClic
                 updateGroupList();
             } else {
                 Log.d(TAG, "Book club document does not exist");
+                tvNoJoinedGroups.setVisibility(View.VISIBLE);
+                tvNoJoinedGroups.setText("No joined groups available.");
             }
         }).addOnFailureListener(e1 -> {
             Log.e(TAG, "Error fetching book club: ", e1);
@@ -190,7 +197,12 @@ public class JoinedFragment extends Fragment implements GroupAdapter.OnGroupClic
         groupAdapter.notifyDataSetChanged();
 
         // Show or hide the TextView based on the list size
-        tvNoJoinedGroups.setVisibility(groupList.isEmpty() ? View.VISIBLE : View.GONE);
+        if (groupList.isEmpty()) {
+            tvNoJoinedGroups.setVisibility(View.VISIBLE);
+            tvNoJoinedGroups.setText("No joined groups available.");
+        } else {
+            tvNoJoinedGroups.setVisibility(View.GONE);
+        }
         Log.d(TAG, "tvNoJoinedGroups visibility set to: " + (groupList.isEmpty() ? "VISIBLE" : "GONE"));
     }
 
