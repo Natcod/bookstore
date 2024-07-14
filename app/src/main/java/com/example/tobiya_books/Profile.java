@@ -64,21 +64,7 @@ public class Profile extends Fragment {
     public Profile() {
         // Required empty public constructor
     }
-    public interface OnUserProfileUpdatedListener {
-        void onUserProfileUpdated(String userId);
-    }
-    private OnUserProfileUpdatedListener callback;
 
-    @Override
-    public void onAttach(@NonNull Context context) {
-        super.onAttach(context);
-        if (context instanceof OnUserProfileUpdatedListener) {
-            callback = (OnUserProfileUpdatedListener) context;
-        } else {
-            throw new RuntimeException(context.toString()
-                    + " must implement OnUserProfileUpdatedListener");
-        }
-    }
     public static Profile newInstance() {
         return new Profile();
     }
