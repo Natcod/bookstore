@@ -1,7 +1,10 @@
 package com.example.tobiya_books;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
 import android.util.Patterns;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -34,6 +37,9 @@ public class SignupTabFragment extends Fragment {
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
     private CollectionReference readerCollection = db.collection("Reader");
 
+    private SharedPreferences sharedPreferences;
+    private static final String TAG = "SignupTabFragment";
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         // Inflate the layout for this fragment
@@ -47,6 +53,9 @@ public class SignupTabFragment extends Fragment {
         firstNameEditText = view.findViewById(R.id.signup_firstname);
         lastNameEditText = view.findViewById(R.id.signup_lastname);
         signupButton = view.findViewById(R.id.signup_button);
+
+        // Initialize SharedPreferences
+        sharedPreferences = getActivity().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
 
         // Set onClick listener for the signup button
         signupButton.setOnClickListener(new View.OnClickListener() {
@@ -158,9 +167,11 @@ public class SignupTabFragment extends Fragment {
                 .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
                     @Override
                     public void onSuccess(DocumentReference documentReference) {
+                        String userId = documentReference.getId(); // Get the document ID
                         Toast.makeText(getContext(), "User registered successfully", Toast.LENGTH_SHORT).show();
                         clearInputFields();
-                        redirectToLogin();
+                        saveUserIdToPreferences(userId);
+                        redirectToMainActivity();
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
@@ -169,6 +180,16 @@ public class SignupTabFragment extends Fragment {
                         Toast.makeText(getContext(), "Error registering user: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                     }
                 });
+    }
+
+    // Method to save user ID to SharedPreferences
+    private void saveUserIdToPreferences(String userId) {
+        Log.d(TAG, "Saving User ID: " + userId); // Logging the user ID being saved
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString("UserID", userId);
+        editor.putBoolean("LoggedIn", true);
+        boolean isSaved = editor.commit(); // Use commit() instead of apply() to ensure changes are saved immediately
+        Log.d(TAG, "SharedPreferences save status: " + isSaved); // Logging the status of SharedPreferences save
     }
 
     // Method to clear input fields after successful registration
@@ -181,8 +202,8 @@ public class SignupTabFragment extends Fragment {
         lastNameEditText.setText("");
     }
 
-    // Method to redirect to the login screen
-    private void redirectToLogin() {
+    // Method to redirect to the MainActivity screen
+    private void redirectToMainActivity() {
         Intent intent = new Intent(getActivity(), MainActivity.class);
         startActivity(intent);
         getActivity().finish(); // Call finish() if you want to close the current activity
