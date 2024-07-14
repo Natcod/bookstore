@@ -167,6 +167,13 @@ public class MessagesFragment extends Fragment {
                 .whereEqualTo("bookClub", db.collection("BookClub").document(groupId))
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
+                    if (queryDocumentSnapshots.isEmpty()) {
+                        // Show dialog indicating no members found
+                        NoMembersDialogFragment noMembersDialog = NoMembersDialogFragment.newInstance();
+                        noMembersDialog.show(getChildFragmentManager(), "NoMembersDialogFragment");
+                        return;
+                    }
+
                     List<GroupMember> members = new ArrayList<>();
                     Log.d(TAG, "Number of group members found: " + queryDocumentSnapshots.size());
                     for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
@@ -206,6 +213,7 @@ public class MessagesFragment extends Fragment {
                     Toast.makeText(getContext(), "Error getting group members: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
     }
+
 
 
 
