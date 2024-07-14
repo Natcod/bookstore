@@ -158,7 +158,7 @@ public class Library extends Fragment implements PurchaseAdapter.OnRemoveClickLi
                                 }
                             } else {
                                 // Display a toast message for non-approved books
-                                    Toast.makeText(view.getContext(), "There is no approved book", Toast.LENGTH_SHORT).show();
+//                                    Toast.makeText(view.getContext(), "There is no approved book", Toast.LENGTH_SHORT).show();
                             }
                         }
                         // Check if books list is empty
